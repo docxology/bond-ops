@@ -1,10 +1,6 @@
-# References {#sec:references}
+# References
 
-Bibliography lives in [`manuscript/references.bib`](references.bib) and is read by Pandoc during PDF render. The build pipeline invokes Pandoc with `--natbib`, so every `[@key]` citation in the manuscript is rewritten to the appropriate `\cite{}`/`\citep{}`/`\citet{}` LaTeX command and resolved against the bib file.
-
-To validate that `references.bib` is syntactically clean and contains the required fields per entry type:
-
-```bash
-uv run python -m infrastructure.reference.citation.cli validate \
-    projects/working/bond/bond-ops/manuscript/references.bib --strict
-```
+- Friedman, Daniel Ari. *BOND-OPS: Fleet Health, Aggregate Gates, and
+  Provisioning for PROJECT BOND*. PROJECT BOND suite, Layer 4 (codename
+  QUARTERMASTER), 2026. Local-only working tree under
+  `projects/working/bond/`.

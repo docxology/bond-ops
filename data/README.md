@@ -1,13 +1,5 @@
-# bond-ops/data
+# data/
 
-Project-maintained **inputs** for the code exemplar (not pipeline outputs).
-
-## Quick reference
-
-| File | Role |
-| --- | --- |
-| `claim_ledger.yaml` | Source-backed numeric and artifact claims for evidence validation |
-
-Generated analysis outputs belong under `output/` during pipeline runs, not here.
-
-Schema and edit protocol: [`AGENTS.md`](AGENTS.md).
+Evidence-ledger overlays for bond-ops. `claim_ledger.yaml` registers the
+data-derived numeric claims backing the manuscript; it is a validation input
+only. Fleet gate results are runtime diagnostics, not committed claims.

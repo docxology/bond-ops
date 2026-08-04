@@ -1,3 +1,4 @@
 # bond-ops skill
 
-> Agent skill for [`bond-ops`](../..). Load via an AGENTS.md-aware runtime.
+Project-scoped skill for maintaining the `bond-ops` fleet-operations package
+(QUARTERMASTER). See [`SKILL.md`](SKILL.md).

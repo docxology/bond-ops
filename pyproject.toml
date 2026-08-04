@@ -1,5 +1,8 @@
-# Code Project Configuration
-# Inherits workspace settings from root pyproject.toml
+# bond-ops — PROJECT BOND fleet operations (Layer 4 · codename QUARTERMASTER)
+#
+# This is a standalone local package within the BOND suite working tree. It
+# depends only on the standard library, subprocess, and PyYAML (for manuscript
+# configuration). There is no remote; never push.
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -7,38 +10,34 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bond-ops"
-version = "2.5.2"
+version = "0.1.0"
 license = {text = "MIT"}
-description = "Fully-tested codebase with numerical optimization and analysis"
+description = "Fleet health, aggregate gates, and provisioning for the 33-package PROJECT BOND suite (QUARTERMASTER)."
 authors = [
     {name = "Daniel Ari Friedman", email = "daniel@activeinference.institute"}
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.24.0",
-    "matplotlib>=3.7.0",
     "pyyaml>=6.0",
-    "defusedxml>=0.7.1",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+    "types-PyYAML>=6.0.12",
 ]
 
 [tool.pytest.ini_options]
-# RASP Strict Assertion: Tests must be clearly separated and structurally identifiable
-pythonpath = [".", "src"]
+pythonpath = ["src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-# `--strict-markers` prevents typos in marker definitions
 addopts = "-v --tb=short --strict-markers"
 
 [tool.coverage.run]
-# Core Template Rule: We only calculate coverage for primary source code (`src/`),
-# ensuring test code itself does not artificially inflate metric scores.
 source = ["src"]
 branch = true
 omit = [
@@ -48,8 +47,6 @@ omit = [
 ]
 
 [tool.coverage.report]
-# ≥90% on src/ is the enforced gate; live coverage % is tracked in
-# docs/_generated/COUNTS.md (do not hardcode it here — it drifts).
 fail_under = 90
 show_missing = true
 precision = 2
@@ -59,5 +56,18 @@ exclude_lines = [
     "raise NotImplementedError",
 ]
 
-[tool.uv]
-# Inherits workspace settings from root pyproject.toml
+[tool.mypy]
+python_version = "3.10"
+mypy_path = ["src"]
+explicit_package_bases = true
+check_untyped_defs = true
+warn_return_any = true
+no_implicit_optional = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
+ignore = ["E501"]

@@ -1,30 +1,13 @@
 {
+  "title": "BOND-OPS: Fleet Health, Aggregate Gates, and Provisioning for PROJECT BOND",
+  "description": "The Layer-4 fleet-operations package (QUARTERMASTER) of the PROJECT BOND suite: canonical roster, aggregate gates, per-repo health, and read-only provisioning.",
   "creators": [
     {
-      "affiliation": "Active Inference Institute",
-      "name": "Friedman, Daniel Ari",
+      "name": "Daniel Ari Friedman",
       "orcid": "0000-0001-6232-9096"
     }
   ],
-  "description": "Source code for Convergence Analysis of Gradient Descent Optimization (2026).",
-  "keywords": [
-    "optimization algorithms",
-    "gradient descent",
-    "convergence analysis",
-    "numerical methods",
-    "mathematical programming",
-    "reproducible research",
-    "infrastructure automation"
-  ],
   "license": "MIT",
-  "related_identifiers": [
-    {
-      "identifier": "10.5281/zenodo.20417136",
-      "relation": "isVersionOf",
-      "scheme": "doi"
-    }
-  ],
-  "title": "Convergence Analysis of Gradient Descent Optimization",
-  "upload_type": "software",
-  "version": "2.5.2"
+  "keywords": ["project-bond", "fleet-operations", "quality-gates"],
+  "version": "0.1.0"
 }

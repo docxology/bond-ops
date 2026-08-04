@@ -1,22 +1,17 @@
-authors:
-- affiliation: Active Inference Institute
-  family-names: Friedman
-  given-names: Daniel Ari
-  orcid: 0000-0001-6232-9096
 cff-version: 1.2.0
-date-released: '2026-07-10'
-doi: 10.5281/zenodo.20417136
-keywords:
-- optimization algorithms
-- gradient descent
-- convergence analysis
-- numerical methods
-- mathematical programming
-- reproducible research
-- infrastructure automation
+message: "If you use PROJECT BOND bond-ops, please cite it as below."
+title: "BOND-OPS: Fleet Health, Aggregate Gates, and Provisioning for PROJECT BOND"
+abstract: >-
+  The Layer-4 fleet-operations package (QUARTERMASTER) of the PROJECT BOND
+  suite: canonical roster, aggregate gates, per-repo health, and provisioning.
+authors:
+  - family-names: Friedman
+    given-names: Daniel Ari
+    orcid: "https://orcid.org/0000-0001-6232-9096"
+version: "0.1.0"
+date-released: "2026-08-04"
 license: MIT
-message: If you use this software, please cite it using the metadata from this file.
-repository-code: https://github.com/docxology/bond-ops
-title: Convergence Analysis of Gradient Descent Optimization
-type: software
-version: 2.5.2
+keywords:
+  - project-bond
+  - fleet-operations
+  - quality-gates

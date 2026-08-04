@@ -1,31 +1,17 @@
 {
-  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
-  "@type": "SoftwareSourceCode",
-  "author": [
-    {
-      "@id": "https://orcid.org/0000-0001-6232-9096",
-      "@type": "Person",
-      "affiliation": {
-        "@type": "Organization",
-        "name": "Active Inference Institute"
-      },
-      "familyName": "Friedman",
-      "givenName": "Daniel Ari"
-    }
-  ],
-  "codeRepository": "https://github.com/docxology/bond-ops",
-  "dateModified": "2026-07-10",
-  "identifier": "10.5281/zenodo.20417136",
-  "keywords": [
-    "optimization algorithms",
-    "gradient descent",
-    "convergence analysis",
-    "numerical methods",
-    "mathematical programming",
-    "reproducible research",
-    "infrastructure automation"
-  ],
-  "license": "https://spdx.org/licenses/MIT",
-  "name": "Convergence Analysis of Gradient Descent Optimization",
-  "version": "2.5.2"
+  "$schema": "https://codemeta.github.io/schema",
+  "name": "bond-ops",
+  "description": "Fleet health, aggregate gates, and provisioning for the 33-package PROJECT BOND suite (QUARTERMASTER).",
+  "author": {
+    "@type": "Person",
+    "givenName": "Daniel Ari",
+    "familyName": "Friedman",
+    "identifier": "https://orcid.org/0000-0001-6232-9096"
+  },
+  "codeRepository": null,
+  "license": "MIT",
+  "version": "0.1.0",
+  "keywords": ["project-bond", "fleet-operations", "quality-gates"],
+  "programmingLanguage": "Python",
+  "dateCreated": "2026-08-04"
 }

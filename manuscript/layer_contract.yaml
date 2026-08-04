@@ -1,5 +1,15 @@
-# Code-centric exemplar: optional monorepo adapters only.
-allow_infrastructure_imports:
-  - src/analysis/_infra.py
-  - src/_runtime.py
-  - src/benchmark_support.py
+# bond-ops layer contract
+
+# Business logic lives in src/bond_ops/ and stays pure-ish (stdlib +
+# subprocess + PyYAML); scripts/ are thin argv wrappers.
+layers:
+  src_bond_ops:
+    - stdlib
+    - subprocess
+  scripts: thin
+
+boundaries:
+  # src/bond_ops/ must not import other BOND packages or infrastructure.*
+  no_infra_import: true
+  no_sibling_import: true
+  one_package_per_subprocess_gate: true

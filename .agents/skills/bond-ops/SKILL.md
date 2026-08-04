@@ -1,53 +1,69 @@
 ---
 name: bond-ops
-description: Code-centric optimization research exemplar — gradient descent, convergence analysis, automated figures, dashboard, and publication-quality PDF.
-version: 0.1.0
-author: docxology
+description: Maintain the PROJECT BOND fleet-operations package (QUARTERMASTER): inventory, gates, health, provisioning.
+version: 1.0.0
+author: activeinference.institute
 license: MIT
-tags: [exemplar, code, optimization, thin-orchestrator]
+tags: [project-bond, fleet-ops, quality-gates, thin-orchestrator]
 ---
 
 # bond-ops
 
-Project-scoped skill for the in-repo exemplar at
-`projects/working/bond/bond-ops/`. Load this when working inside the project.
+Project-scoped skill for the in-repo fleet-operations package at
+`projects/working/bond/bond-ops/` (PROJECT BOND Layer 4 · codename
+**QUARTERMASTER**). Load this when working inside the package.
 
 ## When to Use
 
-- Working inside the `bond-ops` exemplar — running scripts, editing source,
-  or regenerating outputs.
-- Forking this exemplar as the starting scaffold for a new research project.
-- Validating that the exemplar's contracts (thin-orchestrator, layer boundaries,
-  no-mocks testing) still hold after changes.
+- Building/maintaining `bond-ops`: inventory, aggregate gates, per-repo
+  health, provisioning, and the `ops` CLI.
+- Verifying the package against the shared BOND guardrail preamble (≥90%
+  coverage, no mocks, thin orchestrators, no lineage residue).
 
 ## Quick Reference
 
 ```bash
-# From the repository root
-uv run pytest projects/working/bond/bond-ops/tests --cov=projects/working/bond/bond-ops/src --cov-fail-under=90
-uv run python scripts/pipeline/stage_02_analysis.py --project templates/bond-ops
-uv run python scripts/pipeline/stage_03_render.py --project templates/bond-ops
-uv run python scripts/pipeline/stage_04_validate.py --project templates/bond-ops
-uv run python scripts/pipeline/stage_05_copy.py --project templates/bond-ops
+cd projects/working/bond/bond-ops
+uv sync --extra dev
+uv run pytest tests/ --cov=src --cov-fail-under=90
+
+# ops CLI (thin)
+uv run python scripts/ops_gate.py inventory
+uv run python scripts/ops_gate.py gate --json
+uv run python scripts/ops_gate.py health
+uv run python scripts/ops_gate.py roster
+
+# manuscript tokens
+uv run python scripts/z_generate_manuscript_variables.py
 ```
+
+## Architecture
+
+- `src/bond_ops/inventory.py` — 33-slug roster as data + `reconcile()`.
+- `src/bond_ops/gates.py` — one-package-per-subprocess gate + JSON manifest.
+- `src/bond_ops/health.py` — git health, required files, lineage sweep.
+- `src/bond_ops/provision.py` — herdr roster (read-only by default).
+- `src/bond_ops/manuscript_variables.py` — `{{TOKEN}}` map.
+- `scripts/` — thin argv wrappers only.
 
 ## Pitfalls
 
-- **Keep scripts thin.** Business logic belongs in `src/` or shared
-  `infrastructure/`, not in `scripts/`.
-- **No mocks.** All tests must use real data, real files, and real
-  computation.
-- **Outputs are disposable.** Never hand-edit `output/` — regenerate from
-  source and config.
-- **Keep tracked benchmarks deterministic.** Serialize reproducible inputs,
-  objective values, and checks; keep wall-clock timing as a runtime-only
-  diagnostic.
-- **Run from the repo root.** Commands assume the template monorepo root
-  as working directory unless the child `AGENTS.md` states otherwise.
+- **One package per subprocess in the gate.** Never batch multiple packages
+  into a single pytest process (conftest collisions).
+- **No mocks.** Use real `tmp_path` fake packages (real src/tests) and real
+  `git` repos; drive gates with `sys.executable -m pytest … -p no:cacheprovider`.
+- **Safe by default.** `provision` executes nothing without `--execute`.
+- **Lineage sweep** is zero-tolerance for `template_code_project`; bracket-split
+  the token (`template[_]code_project`) anywhere this repo must mention it, so
+  the doc cannot trip its own sweep.
+- **No `infrastructure.*` / sibling imports** in `src/bond_ops/` (stdlib +
+  subprocess + PyYAML only).
+- **Manuscript tokens** come from `manuscript/config.yaml` +
+  `src/bond_ops/manuscript_variables.py`; fleet gate results are runtime
+  diagnostics, never hand-authored metrics.
 
 ## Cross-refs
 
-- Project contract: [`AGENTS.md`](../../../AGENTS.md)
-- README: [`README.md`](../../../README.md)
-- TODO: [`TODO.md`](../../../TODO.md)
-- Exemplar roster: [`projects/AGENTS.md`](../../../../../AGENTS.md)
+- Shared guardrail preamble + BOND suite map: `software-development/bond-suite-package-development` skill.
+- Suite roster/scope: `projects/working/bond/` (`SCOPE.md`, `ROSTER.md`).
+- Project context: `AGENTS.md`, `docs/agent_instructions.md`.

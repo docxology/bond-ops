@@ -3,6 +3,8 @@
 .pytest_cache/
 __pycache__/
 *.pyc
+.mypy_cache/
+.ruff_cache/
 .benchmarks/
 
 # Egg-info from local installs (any location — guards against renamed-fork drift).
@@ -10,3 +12,6 @@ __pycache__/
 
 # Project-local virtualenvs (root .venv is shared)
 .venv/
+
+# Regenerable artifacts — never commit these (script smoke tests write here).
+output/
