@@ -13,10 +13,13 @@ real fleet; its own tests must prove the real subprocess/fs paths work.
 
 | Concern | Real substitute |
 |---|---|
-| Package gating | `build_fake_package` → real `src/` module + real `tests/`; run with `sys.executable -m pytest --cov=src --cov-fail-under=90 -p no:cacheprovider` in its own subprocess. |
+| Package gating | `make_package` → real `src/` module + real `tests/`; run with `sys.executable -m pytest --cov=src --cov-fail-under=90 -p no:cacheprovider` in its own subprocess (or a fake `uv`/`herdr` on an override `PATH` for the default-command path). |
 | Git health | real `git init` + commits under `tmp_path`; modify/untrack files to flip state. |
 | Inventory reconcile | empty/partial tmp roots → missing/unexpected; the live suite root → present. |
-| Provisioning | dry-run (no subprocess) + a real `true`/`false` command for the execute path. |
+| Provisioning | dry-run (no subprocess) + a real `true`/`false` command for the execute path; a real fake-`herdr` bin for the script-execute path. |
+| Layout probes | real `pyproject.toml`/`tests/`/`src/` files under `tmp_path` (name match and drift cases). |
+| Toolchain probe | real `git`/`uv`/`python` on PATH (versions verified non-`None`). |
+| Real fleet | `tests/test_real_fleet.py` runs the gate runner + health/layout/toolchain probes against the live sibling packages. |
 
 ## Coverage
 

@@ -11,7 +11,10 @@ All git/fs inspection is real subprocess + real files — no mocks.
 
 from __future__ import annotations
 
+import re
+import shutil
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -132,6 +135,73 @@ def lineage_sweep(package_dir: str | Path) -> list[str]:
     return hits
 
 
+def _read_project_name(pyproject_text: str) -> str | None:
+    """Extract the ``[project] name = "..."`` value from pyproject TOML text.
+
+    A minimal, dependency-free parser: only the ``[project]`` section is
+    scanned (stdlib ``tomllib`` is 3.11+; the package supports 3.10).
+    """
+    in_project = False
+    for line in pyproject_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            in_project = stripped == "[project]"
+            continue
+        if in_project:
+            match = re.match(r'name\s*=\s*"([^"]+)"', stripped)
+            if match:
+                return match.group(1)
+    return None
+
+
+def probe_layout(package_dir: str | Path, slug: str) -> dict[str, bool]:
+    """Probe the gate-critical layout of ``package_dir``.
+
+    Returns booleans for: ``has_pyproject``, ``pyproject_matches_slug`` (the
+    ``[project] name`` equals ``slug``), ``has_tests_dir`` and ``has_src_dir``.
+    A package whose pyproject name drifted from its slug is flagged here even
+    when the tree is git-clean — a silent fork hazard.
+    """
+    root = Path(package_dir)
+    pyproject = root / "pyproject.toml"
+    has_pyproject = pyproject.is_file()
+    project_name = (
+        _read_project_name(pyproject.read_text(encoding="utf-8")) if has_pyproject else None
+    )
+    return {
+        "has_pyproject": has_pyproject,
+        "pyproject_matches_slug": project_name == slug if has_pyproject else False,
+        "has_tests_dir": (root / "tests").is_dir(),
+        "has_src_dir": (root / "src").is_dir(),
+    }
+
+
+def _binary_version(binary: str, flag: str = "--version") -> str | None:
+    """First line of ``<binary> <flag>`` output, or ``None`` when unavailable."""
+    path = shutil.which(binary)
+    if path is None:
+        return None
+    try:
+        proc = subprocess.run([path, flag], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):  # pragma: no cover - env edge
+        return None
+    text = (proc.stdout or "").strip()
+    return text.splitlines()[0] if text else None
+
+
+def tool_versions() -> dict[str, str | None]:
+    """Probe the toolchain QUARTERMASTER itself depends on.
+
+    Returns ``git`` / ``uv`` / ``python`` version strings (real subprocess);
+    ``None`` when a tool is not on ``PATH``.
+    """
+    return {
+        "git": _binary_version("git"),
+        "uv": _binary_version("uv"),
+        "python": _binary_version(sys.executable, "--version"),
+    }
+
+
 @dataclass
 class HealthReport:
     """Composite health result for a single package."""
@@ -141,6 +211,7 @@ class HealthReport:
     git: GitHealth | None
     files: dict[str, bool]
     lineage_hits: list[str] = field(default_factory=list)
+    probes: dict[str, bool] = field(default_factory=dict)
 
     @property
     def files_complete(self) -> bool:
@@ -151,9 +222,20 @@ class HealthReport:
         return not self.lineage_hits
 
     @property
+    def layout_ok(self) -> bool:
+        """All layout probes pass (pyproject name matches slug, tests/ and
+        src/ present). Empty probes (absent package) report False."""
+        return bool(self.probes) and all(self.probes.values())
+
+    @property
     def healthy(self) -> bool:
         """Present, all required files, no lineage hits, and a clean git tree
-        (when the directory is a git repository)."""
+        (when the directory is a git repository).
+
+        Note: ``layout_ok`` is reported alongside but intentionally NOT folded
+        into ``healthy`` — the probe is a diagnostic for drift, and folding it
+        in would change the verdict contract downstream consumers rely on.
+        """
         return bool(
             self.present
             and self.files_complete
@@ -173,6 +255,7 @@ def health(package_dir: str | Path, *, slug: str | None = None) -> HealthReport:
             git=None,
             files={},
             lineage_hits=[],
+            probes={},
         )
     return HealthReport(
         slug=name,
@@ -180,6 +263,7 @@ def health(package_dir: str | Path, *, slug: str | None = None) -> HealthReport:
         git=git_health(root),
         files=required_files(root),
         lineage_hits=lineage_sweep(root),
+        probes=probe_layout(root, name),
     )
 
 

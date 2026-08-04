@@ -2,8 +2,9 @@
 
 Regenerate after running the gate. Do not hand-edit beyond the token line.
 
-- **Test count:** 67
-- **Coverage (src/):** 96.58 %
+- **Test count:** 85
+- **Coverage (src/):** 96.64 %
 
 > Measured via `uv run pytest tests/ --cov=src --cov-fail-under=90` after the
-> Phase-3 build. Ruff check + format clean; mypy clean on `src/` + `scripts/`.
+> Phase-4 deepening. Ruff check + format clean; mypy clean on `src/` +
+> `scripts/`. 0 failed, 0 skipped.

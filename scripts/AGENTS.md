@@ -5,7 +5,7 @@
 
 | Script | Purpose |
 |---|---|
-| `ops_gate.py` | `ops` CLI — `inventory`, `gate [--json]`, `health`, `roster`. Parse args + print; delegate to `bond_ops.*`. |
+| `ops_gate.py` | `ops` CLI — `inventory`, `gate [--json]`, `health [--json]`, `roster [--json]`/`roster --execute`. Parse args + print; delegate to `bond_ops.*`. |
 | `z_generate_manuscript_variables.py` | Writes the manuscript `{{TOKEN}}` map to `output/variables/`. |
 
 The scripts self-insert `../src` into `sys.path` so they can be run directly

@@ -7,9 +7,10 @@ All importable fleet-operations logic lives here. `scripts/` remains thin.
 | Module | Contents |
 |---|---|
 | `inventory.py` | `PackageRecord`, `ROSTER` (33 records), `SUITE_NAME`, `SUITE_SIZE`/`FILM_COUNT`/`INFRA_COUNT`, `reconcile()`, `package_record()`, `is_known_slug()`, `package_dir()`. |
-| `gates.py` | `run_command()`, `parse_coverage()`, `gate_one()`, `run_aggregate_gate()`, `AggregateGateReport`, `build_manifest()`/`manifest_to_json()`/`write_manifest()`/`parse_manifest()`, `format_report()`. Default commands run one package per subprocess. |
-| `health.py` | `git_health()`, `required_files()`, `lineage_sweep()`, `health()`, `HealthReport`. |
-| `provision.py` | `build_provision_lines()`, `format_provision()`, `execute_commands()` (dry-run default). |
+| `gates.py` | `run_command()`, `parse_coverage()`/`parse_coverage_failure()`/`coverage_stats()`, `gate_one()`, `run_aggregate_gate()`, `AggregateGateReport` (+`coverage_values`, `failed_slugs`), `build_manifest()`/`manifest_to_json()`/`write_manifest()`/`parse_manifest()`, `format_report()`. Default commands run one package per subprocess. Public constants `GATE_MANIFEST_NAME`, `COVERAGE_FLOOR`. Optional `env` passthrough on run/gate calls. |
+| `health.py` | `git_health()`, `required_files()`, `lineage_sweep()`, `probe_layout()`/`_read_project_name()`, `tool_versions()`, `health()`, `sweep()`, `HealthReport` (+`probes`, `layout_ok`). |
+| `provision.py` | `build_roster()`, `resolve_prompt()`, `render_provision_script()`, `format_provision()`, `roster_report()`, `execute_script()` (dry-run default via CLI). |
+| `cli.py` | `ops` argparse surface: `inventory`/`gate`/`health`/`roster`, all with `--json` and `--suite-root`; `ops roster --json` emits the roster manifest. |
 | `manuscript_variables.py` | `read_identity()`, `build_tokens()`, `generate_variables()`, `load_generated()`. |
 
 ## Rules

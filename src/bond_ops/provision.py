@@ -161,6 +161,37 @@ def format_provision(
     return PROVISION_HEADER + "\n" + render_provision_script(entries)
 
 
+def roster_report(entries: tuple[RosterEntry, ...]) -> dict[str, object]:
+    """Deterministic, machine-readable provisioning roster report.
+
+    Summarises the fleet by kind and prompt-brief coverage, then lists every
+    entry (slug, kind, codename, cwd, prompt). No wall-clock; byte-identical
+    for a given fleet state.
+    """
+    with_prompt = [e.slug for e in entries if e.prompt is not None]
+    return {
+        "manifest": "bond-ops-roster",
+        "schema_version": 1,
+        "summary": {
+            "total": len(entries),
+            "infra": sum(1 for e in entries if e.kind == "infra"),
+            "film": sum(1 for e in entries if e.kind == "film"),
+            "with_prompt": len(with_prompt),
+            "without_prompt": len(entries) - len(with_prompt),
+        },
+        "entries": [
+            {
+                "slug": e.slug,
+                "kind": e.kind,
+                "codename": e.codename,
+                "cwd": e.cwd,
+                "prompt": e.prompt,
+            }
+            for e in entries
+        ],
+    }
+
+
 def execute_script(script: str, *, timeout: int = 600) -> CommandResult:
     """Run a rendered provisioning script through the shell (real subprocess).
 

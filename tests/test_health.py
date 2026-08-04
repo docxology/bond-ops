@@ -152,3 +152,60 @@ def test_sweep_over_roster(tmp_path):
     assert by["bond-ops"].healthy is True
     assert by["goldfinger"].healthy is False  # lineage hit
     assert by["moonraker"].present is False  # not created -> missing
+
+
+def test_probe_layout_ok(tmp_path):
+    pkg = tmp_path / "bond-ops"
+    (pkg / "src").mkdir(parents=True)
+    (pkg / "tests").mkdir()
+    (pkg / "pyproject.toml").write_text(
+        '[project]\nname = "bond-ops"\nversion = "0.1.0"\n', encoding="utf-8"
+    )
+    expected = {
+        "has_pyproject": True,
+        "pyproject_matches_slug": True,
+        "has_tests_dir": True,
+        "has_src_dir": True,
+    }
+    assert h.probe_layout(pkg, "bond-ops") == expected
+    rep = h.health(pkg, slug="bond-ops")
+    assert rep.probes == expected
+    assert rep.layout_ok is True
+
+
+def test_probe_layout_drift(tmp_path):
+    pkg = tmp_path / "dr_no"
+    pkg.mkdir()
+    (pkg / "pyproject.toml").write_text('[project]\nname = "bond-ops"\n', encoding="utf-8")
+    probes = h.probe_layout(pkg, "dr_no")
+    assert probes["has_pyproject"] is True
+    assert probes["pyproject_matches_slug"] is False
+    assert probes["has_tests_dir"] is False and probes["has_src_dir"] is False
+    assert h.health(pkg, slug="dr_no").layout_ok is False
+
+
+def test_probe_layout_reads_only_project_section(tmp_path):
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "pyproject.toml").write_text(
+        '[build-system]\nname = "ignored"\n\n[project]\nname = "pkg"\nversion = "1"\n',
+        encoding="utf-8",
+    )
+    assert h.probe_layout(pkg, "pkg")["pyproject_matches_slug"] is True
+    (pkg / "pyproject.toml").write_text('[tool.pytest]\nname = "pkg"\n', encoding="utf-8")
+    assert h.probe_layout(pkg, "pkg")["pyproject_matches_slug"] is False
+
+
+def test_tool_versions_real_environment():
+    versions = h.tool_versions()
+    assert set(versions) == {"git", "uv", "python"}
+    assert versions["git"] is not None
+    assert "git version" in versions["git"]
+    assert versions["uv"] is not None
+    assert versions["python"] is not None
+
+
+def test_health_report_probes_default():
+    rep = h.HealthReport(slug="x", present=True, git=None, files={"a": True})
+    assert rep.probes == {}
+    assert rep.layout_ok is False

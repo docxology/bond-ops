@@ -16,19 +16,22 @@
 | Module | Covers |
 |---|---|
 | `test_inventory.py` | 33-slug roster, kind split, reconcile vs live dirs + tmp roots. |
-| `test_gates.py` | subprocess gate (`gate_one`) pass/fail/coverage, ruff/mypy, manifest JSON, report. |
-| `test_health.py` | real git repos: clean/dirty/untracked, required files, lineage sweep. |
-| `test_provision.py` | herdr provisioning lines, dry-run vs real safe command execution. |
+| `test_gates.py` | subprocess gate (`gate_one`) pass/fail/coverage, `TOTAL`-or-failure-line coverage parse, coverage stats, ruff/mypy, manifest JSON, report. |
+| `test_health.py` | real git repos: clean/dirty/untracked, required files, lineage sweep, layout probes, toolchain probe. |
+| `test_provision.py` | herdr provisioning lines/script, dry-run vs real execution, roster report. |
 | `test_manuscript_variables.py` | token hydration + live manuscript cross-reference. |
+| `test_cli.py` | in-process `ops` CLI: every subcommand, `--json` manifests, exit codes. |
+| `test_real_fleet.py` | gate runner + health/layout/toolchain probes against the live fleet. |
 | `test_scripts_smoke.py` | subprocess smoke of `ops` CLI and the variables script. |
 
 ## Helpers
 
 `conftest.py` exposes:
 
-- `build_fake_package(root, slug, *, coverage="full"|"partial", tests_fail=bool)`
-- `fake_package_factory` (fixture) — builds a package under an isolated tmp root.
-- `tmp_suite_root` (fixture) — an empty tmp dir standing in for the live suite root.
+- `make_package(root, slug, *, failing=False, cov_low=False)` — real fake package.
+- `fake_uv` / `fake_herdr` fixtures — real executable shell scripts on an
+  override `PATH` that log argv and emit canned coverage/`workspace` JSON.
+- `fleet` fixture — an empty tmp dir standing in for the live suite root.
 
 Nested pytest runs use `sys.executable -m pytest tests/ --cov=src --cov-fail-under=90
 -p no:cacheprovider` so each fake package is gated exactly like the real fleet

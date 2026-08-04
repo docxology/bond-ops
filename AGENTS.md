@@ -48,3 +48,10 @@ Commit with path-scoped commits inside this repo only (`git add -A` here).
   (`src/bond_ops/inventory.py`) and the integration point to consume a shared
   registry is recorded in `TODO.md`.
 - The rest is stdlib + subprocess.
+- Phase-4 added layout probes (`probe_layout`), a toolchain probe
+  (`tool_versions`), a `roster_report` JSON manifest, and a real-fleet test
+  module that runs the gate runner and probes against the live fleet. The
+  `healthy` verdict contract is unchanged (probes are additive diagnostics).
+- Subprocess `env` override: `run_command`/`gate_one`/`run_aggregate_gate`
+  accept an optional `env` (default `None` inherits), letting a nested gate
+  target a sibling's own project environment without touching global state.

@@ -19,6 +19,7 @@ from typing import cast
 
 import yaml
 
+from .gates import COVERAGE_FLOOR, GATE_MANIFEST_NAME
 from .inventory import (
     BOND_OPS_CODENAME,
     FILM_COUNT,
@@ -68,6 +69,8 @@ def build_tokens(project_root: str | Path) -> dict[str, str]:
         "SUITE_SIZE": str(SUITE_SIZE),
         "FILM_COUNT": str(FILM_COUNT),
         "INFRA_COUNT": str(INFRA_COUNT),
+        "GATE_MANIFEST": GATE_MANIFEST_NAME,
+        "COVERAGE_FLOOR": str(COVERAGE_FLOOR),
     }
 
 

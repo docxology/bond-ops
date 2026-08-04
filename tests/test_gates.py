@@ -206,3 +206,63 @@ def test_format_report_human(tmp_path):
     text = g.format_report(rep)
     assert "aggregate gate" in text
     assert "dr_no" in text
+
+
+def test_parse_coverage_failure_line():
+    out = (
+        "FAIL Required test coverage of 90% not reached. Total coverage: 55.56%\n1 failed in 0.01s"
+    )
+    assert g.parse_coverage(out) == 55.56
+    assert g.parse_coverage_failure(out) == 55.56
+    assert g.parse_coverage_failure("no marker here") is None
+    assert g.parse_coverage_failure("Total coverage: nope%") is None
+
+
+def test_parse_coverage_prefers_total_line():
+    out = "TOTAL 9 0 100%\nFAIL Required test coverage of 90% not reached. Total coverage: 55.56%"
+    assert g.parse_coverage(out) == 100.0  # TOTAL table wins over failure line
+
+
+def test_coverage_stats():
+    stats = g.coverage_stats([90.0, 100.0, 80.0])
+    assert stats["measured"] == 3
+    assert stats["mean"] == 90.0
+    assert stats["min"] == 80.0
+    assert stats["max"] == 100.0
+    empty = g.coverage_stats([])
+    assert empty["measured"] == 0
+    assert empty["mean"] is None and empty["min"] is None and empty["max"] is None
+
+
+def test_report_coverage_and_failures():
+    results = [
+        g.PackageGateResult("a", True, True, 100.0, True, True, True, None),
+        g.PackageGateResult("b", True, False, 55.5, False, True, False, "boom"),
+        g.PackageGateResult("c", False, None, None, None, None, False, "absent"),
+    ]
+    report = g.AggregateGateReport(g.SUITE_NAME, g.BOND_OPS_CODENAME, results)
+    assert report.coverage_values == [100.0, 55.5]
+    assert report.failed_slugs == ["b"]
+    summary = report.to_dict()["summary"]
+    assert summary["coverage_measured"] == 2
+    assert summary["coverage_mean"] == 77.75
+    assert summary["coverage_min"] == 55.5
+    assert summary["coverage_max"] == 100.0
+
+
+def test_manifest_no_timestamp_and_name_constant():
+    assert g.GATE_MANIFEST_NAME == "bond-ops-gate"
+    assert g.COVERAGE_FLOOR == 90
+    results = [g.PackageGateResult("a", True, True, 100.0, True, True, True, None)]
+    report = g.AggregateGateReport(g.SUITE_NAME, g.BOND_OPS_CODENAME, results)
+    text = g.manifest_to_json(report)
+    assert g.GATE_MANIFEST_NAME in text
+    assert "run_timestamp" not in text
+
+
+def test_run_command_env_propagation(tmp_path):
+    probe = (sys.executable, "-c", "import os; print(os.environ.get('MY_MARK', 'no'))")
+    with_env = g.run_command(probe, cwd=tmp_path, env={"MY_MARK": "yes"})
+    assert with_env.output.strip() == "yes"
+    inherited = g.run_command(probe, cwd=tmp_path)
+    assert inherited.output.strip() == "no"

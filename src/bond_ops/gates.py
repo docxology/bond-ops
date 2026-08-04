@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import cast
@@ -34,6 +35,13 @@ DEFAULT_MYPY_CMD = ("uv", "run", "mypy", "src/")
 #: How long a single subprocess gate may run before being killed (seconds).
 DEFAULT_TIMEOUT = 600
 
+#: Machine-readable manifest identifiers (single source of truth, reused by
+#: the CLI and manuscript tokens).
+GATE_MANIFEST_NAME = "bond-ops-gate"
+
+#: Coverage floor enforced by the canonical gate command (percent).
+COVERAGE_FLOOR = 90
+
 
 @dataclass(frozen=True)
 class CommandResult:
@@ -46,15 +54,23 @@ class CommandResult:
 
 
 def run_command(
-    command: tuple[str, ...] | list[str], cwd: str | Path, timeout: int = DEFAULT_TIMEOUT
+    command: tuple[str, ...] | list[str],
+    cwd: str | Path,
+    timeout: int = DEFAULT_TIMEOUT,
+    env: Mapping[str, str] | None = None,
 ) -> CommandResult:
-    """Run ``command`` in ``cwd`` and capture combined output (real subprocess)."""
+    """Run ``command`` in ``cwd`` and capture combined output (real subprocess).
+
+    ``env`` overrides the inherited environment when given (the default
+    ``None`` inherits the caller's environment, preserving existing behaviour).
+    """
     proc = subprocess.run(
         list(command),
         cwd=str(cwd),
         capture_output=True,
         text=True,
         timeout=timeout,
+        env=dict(env) if env is not None else None,
     )
     output = (proc.stdout or "") + (proc.stderr or "")
     return CommandResult(
@@ -66,11 +82,17 @@ def run_command(
 
 
 def parse_coverage(output: str) -> float | None:
-    """Parse the pytest-cov ``TOTAL`` line percentage from ``output``.
+    """Parse the coverage percentage from pytest-cov's ``output``.
 
-    Looks for a line beginning with ``TOTAL`` whose last numeric token ends in
-    ``%`` (e.g. ``TOTAL  14 0 100%``). Returns ``None`` when no summary is
-    present (e.g. the subprocess crashed before coverage was measured).
+    Two layouts are understood, tried in order:
+
+    1. the ``TOTAL`` line of the term table (``TOTAL 14 0 100%``), and
+    2. the failure line pytest-cov prints when the floor is not reached
+       (``Required test coverage of 90% not reached. Total coverage: 55.56%``)
+       — some configurations omit the table on failure.
+
+    Returns ``None`` when neither layout is present (e.g. the subprocess
+    crashed before coverage was measured).
     """
     for line in output.splitlines():
         if line.lstrip().startswith("TOTAL"):
@@ -80,7 +102,41 @@ def parse_coverage(output: str) -> float | None:
                         return float(token.rstrip("%"))
                     except ValueError:
                         return None
+    return parse_coverage_failure(output)
+
+
+def parse_coverage_failure(output: str) -> float | None:
+    """Parse the coverage percentage from pytest-cov's *failure* line.
+
+    Matches ``... not reached. Total coverage: <X>%`` in any line (used as a
+    fallback when the ``TOTAL`` table is not emitted).
+    """
+    marker = "Total coverage:"
+    for line in output.splitlines():
+        if marker in line:
+            tail = line.split(marker, 1)[1]
+            percent = tail.split("%", 1)[0].strip()
+            try:
+                return float(percent)
+            except ValueError:
+                return None
     return None
+
+
+def coverage_stats(coverages: list[float]) -> dict[str, float | int | None]:
+    """Aggregate coverage statistics over measured values.
+
+    Returns ``measured`` (count), ``mean``/``min``/``max`` (``None`` when
+    ``coverages`` is empty). Deterministic; no wall-clock.
+    """
+    if not coverages:
+        return {"measured": 0, "mean": None, "min": None, "max": None}
+    return {
+        "measured": len(coverages),
+        "mean": round(sum(coverages) / len(coverages), 2),
+        "min": min(coverages),
+        "max": max(coverages),
+    }
 
 
 @dataclass
@@ -109,11 +165,13 @@ def gate_one(
     run_ruff: bool = True,
     run_mypy: bool = True,
     timeout: int = DEFAULT_TIMEOUT,
+    env: Mapping[str, str] | None = None,
 ) -> PackageGateResult:
     """Run the full gate for one package directory.
 
     Executes the pytest coverage gate and, optionally, ruff and mypy, each in
-    its own subprocess with ``cwd=package_dir``.
+    its own subprocess with ``cwd=package_dir``. ``env`` (when given) overrides
+    the inherited environment for every subprocess.
     """
     pkg = Path(package_dir)
     slug = pkg.name
@@ -130,29 +188,29 @@ def gate_one(
         )
 
     try:
-        pytest = run_command(pytest_cmd, cwd=pkg, timeout=timeout)
-        coverage = parse_coverage(pytest.output)
+        pytest_cr = run_command(pytest_cmd, cwd=pkg, timeout=timeout, env=env)
+        coverage = parse_coverage(pytest_cr.output)
         ruff: CommandResult | None = None
         mypy: CommandResult | None = None
         if run_ruff:
-            ruff = run_command(ruff_cmd, cwd=pkg, timeout=timeout)
+            ruff = run_command(ruff_cmd, cwd=pkg, timeout=timeout, env=env)
         if run_mypy:
-            mypy = run_command(mypy_cmd, cwd=pkg, timeout=timeout)
+            mypy = run_command(mypy_cmd, cwd=pkg, timeout=timeout, env=env)
 
         ruff_ok = ruff.passed if ruff is not None else None
         mypy_ok = mypy.passed if mypy is not None else None
         # Under the canonical gate, failing ruff/mypy is informational for the
         # overall pass (coverage is the enforced floor); still record it.
-        passed = pytest.passed and (ruff_ok is None or ruff_ok) and (mypy_ok is None or mypy_ok)
+        passed = pytest_cr.passed and (ruff_ok is None or ruff_ok) and (mypy_ok is None or mypy_ok)
         return PackageGateResult(
             slug=slug,
             present=True,
-            pytest_passed=pytest.passed,
+            pytest_passed=pytest_cr.passed,
             coverage=coverage,
             ruff_passed=ruff_ok,
             mypy_passed=mypy_ok,
             passed=passed,
-            error=pytest.output[-800:] if not pytest.passed else None,
+            error=pytest_cr.output[-800:] if not pytest_cr.passed else None,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:  # pragma: no cover - os error path
         return PackageGateResult(
@@ -201,10 +259,28 @@ class AggregateGateReport:
         """:data:`True` when every present package passed the gate."""
         return self.present > 0 and self.failed_count == 0
 
+    @property
+    def coverage_values(self) -> list[float]:
+        """Measured coverage of every present package that reported one."""
+        values: list[float] = []
+        for r in self.results:
+            if r.present and r.coverage is not None:
+                values.append(r.coverage)
+        return values
+
+    @property
+    def failed_slugs(self) -> list[str]:
+        """Slugs of present packages whose gate verdict is a FAIL."""
+        slugs_: list[str] = []
+        for r in self.results:
+            if r.present and not bool(r.passed):
+                slugs_.append(r.slug)
+        return slugs_
+
     def to_dict(self) -> dict[str, object]:
-        coverages = [r.coverage for r in self.results if r.present and r.coverage is not None]
+        stats = coverage_stats(self.coverage_values)
         return {
-            "manifest": "bond-ops-gate",
+            "manifest": GATE_MANIFEST_NAME,
             "schema_version": 1,
             "generated_by": self.generated_by,
             "suite": self.suite_name,
@@ -215,10 +291,10 @@ class AggregateGateReport:
                 "passed": self.passed_count,
                 "failed": self.failed_count,
                 "all_pass": self.all_pass,
-                "coverage_measured": len(coverages),
-                "coverage_mean": round(sum(coverages) / len(coverages), 2) if coverages else None,
-                "coverage_min": min(coverages) if coverages else None,
-                "coverage_max": max(coverages) if coverages else None,
+                "coverage_measured": stats["measured"],
+                "coverage_mean": stats["mean"],
+                "coverage_min": stats["min"],
+                "coverage_max": stats["max"],
             },
             "packages": [r.to_dict() for r in self.results],
         }
@@ -236,6 +312,7 @@ def run_aggregate_gate(
     run_ruff: bool = True,
     run_mypy: bool = True,
     timeout: int = DEFAULT_TIMEOUT,
+    env: Mapping[str, str] | None = None,
 ) -> AggregateGateReport:
     """Run the gate for every roster package under ``suite_root``.
 
@@ -264,6 +341,7 @@ def run_aggregate_gate(
             run_ruff=run_ruff,
             run_mypy=run_mypy,
             timeout=timeout,
+            env=env,
         )
         for rec in selected
     ]

@@ -12,6 +12,26 @@ QUARTERMASTER). No closed-out task archaeology; keep it pointed.
 - [x] `scripts/ops_gate.py` — thin `ops` CLI (`inventory` / `gate [--json]` / `health` / `roster`).
 - [x] Deterministic test suite (real subprocess, tmp fake packages) at ≥90% coverage.
 
+## Phase-4 deepening (this build)
+
+- [x] `gates.py` — coverage parses the pytest-cov `... not reached. Total coverage: X%`
+  failure line as a fallback to the `TOTAL` table; `coverage_stats()` helper and
+  `coverage_values`/`failed_slugs` on the report; optional per-subprocess `env`
+  passthrough (`run_command`/`gate_one`/`run_aggregate_gate`) so a nested gate
+  can target a sibling's own project environment.
+- [x] `health.py` — `probe_layout()` (pyproject-name-vs-slug drift, `tests/` and
+  `src/` presence) with `HealthReport.layout_ok`; `tool_versions()` toolchain
+  probe (git/uv/python). `healthy` verdict contract unchanged (probes are
+  diagnostic, not folded in).
+- [x] `provision.py` — `roster_report()` deterministic machine-readable roster
+  manifest (kind + prompt-brief counts); `ops roster --json`.
+- [x] `cli.py` — `ops roster --json`; `ops health --json` exposes per-package
+  `probes` and `layout_ok`.
+- [x] Real-fleet test module (`tests/test_real_fleet.py`) — the gate runner gates
+  `bond-ops` itself through the venv interpreter (real pytest-coverage/ruff/mypy,
+  `--ignore=tests/test_real_fleet.py` to avoid recursion); health + layout +
+  toolchain probes run against real live siblings. 0 mocks, 0 skips.
+
 ## Integration points (bind when the sibling lands)
 
 - **Consume a shared suite registry (bond-coordinator).** Today `inventory.py`

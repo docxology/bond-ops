@@ -140,3 +140,32 @@ def test_unknown_subcommand():
     with pytest.raises(SystemExit) as exc:
         main(["bogus"])
     assert exc.value.code == 2
+
+
+def test_roster_json(capsys, tmp_path):
+    root = tmp_path / "fleet"
+    root.mkdir()
+    code = main(
+        ["roster", "--json", "--suite-root", str(root), "--prompt-dir", str(tmp_path / "nope")]
+    )
+    data = json.loads(capsys.readouterr().out)
+    assert code == 0
+    assert data["manifest"] == "bond-ops-roster"
+    assert data["summary"]["total"] == 33
+    assert data["summary"]["infra"] == 6
+    assert data["summary"]["film"] == 27
+    assert data["summary"]["with_prompt"] == 0
+    assert len(data["entries"]) == 33
+    assert "run_timestamp" not in data
+
+
+def test_health_json_has_probes(capsys, tmp_path):
+    root = tmp_path / "fleet"
+    root.mkdir()
+    code = main(["health", "--json", "--suite-root", str(root)])
+    data = json.loads(capsys.readouterr().out)
+    assert code == 0
+    first = data["packages"][0]
+    assert "probes" in first
+    assert "layout_ok" in first
+    assert first["present"] is False

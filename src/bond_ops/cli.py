@@ -43,7 +43,13 @@ from .inventory import (
     is_known_slug,
     reconcile,
 )
-from .provision import build_roster, execute_script, format_provision, render_provision_script
+from .provision import (
+    build_roster,
+    execute_script,
+    format_provision,
+    render_provision_script,
+    roster_report,
+)
 
 
 def _print_json(payload: object) -> None:
@@ -158,6 +164,8 @@ def _cmd_health(args: argparse.Namespace) -> int:
                         "behind": r.git.behind if r.git else None,
                         "required_files": r.files,
                         "lineage_hits": list(r.lineage_hits),
+                        "probes": r.probes,
+                        "layout_ok": r.layout_ok,
                         "healthy": r.healthy,
                     }
                     for r in reports
@@ -199,6 +207,9 @@ def _cmd_roster(args: argparse.Namespace) -> int:
         if result.output:
             print(result.output)
         return 0 if result.passed else 1
+    if args.json:
+        _print_json(roster_report(entries))
+        return 0
     print(format_provision(suite_root=root, prompt_dir=prompt_dir))
     return 0
 

@@ -86,3 +86,28 @@ def test_execute_script_success(tmp_path, fake_herdr, fleet):
     assert "workspace create --label bond-utilities" in log
     assert "agent start bond-utilities --kind hermes" in log
     assert "agent prompt bond-api" in log
+
+
+def test_roster_report_summary(fleet):
+    entries = pv.build_roster(roster_=ROSTER[:8], suite_root=fleet)  # 6 infra + 2 films
+    report = pv.roster_report(entries)
+    assert report["manifest"] == "bond-ops-roster"
+    assert report["summary"]["total"] == 8
+    assert report["summary"]["infra"] == 6
+    assert report["summary"]["film"] == 2
+    assert report["summary"]["with_prompt"] == 0
+    assert report["summary"]["without_prompt"] == 8
+    assert len(report["entries"]) == 8
+    assert report["entries"][0]["slug"] == "bond-utilities"
+    assert report["entries"][0]["cwd"] == str(fleet / "bond-utilities")
+
+
+def test_roster_report_with_prompts(tmp_path, fleet):
+    prompts = tmp_path / "prompts"
+    (prompts / "infra").mkdir(parents=True)
+    (prompts / "infra" / "bond-utilities.txt").write_text("b", encoding="utf-8")
+    entries = pv.build_roster(roster_=ROSTER[:1], suite_root=fleet, prompt_dir=prompts)
+    report = pv.roster_report(entries)
+    assert report["summary"]["with_prompt"] == 1
+    assert report["summary"]["without_prompt"] == 0
+    assert report["entries"][0]["prompt"] == str(prompts / "infra" / "bond-utilities.txt")
