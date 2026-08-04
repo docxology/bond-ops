@@ -10,7 +10,7 @@
   },
   "codeRepository": null,
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "3.0.0",
   "keywords": ["project-bond", "fleet-operations", "quality-gates"],
   "programmingLanguage": "Python",
   "dateCreated": "2026-08-04"

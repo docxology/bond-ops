@@ -17,7 +17,8 @@ Operational rules for AI agents and developers working inside
 
 - ≥90% line+branch coverage on `src/`: `uv run pytest tests/ --cov=src --cov-fail-under=90`.
 - Deterministic: fixed seeds / fixed inputs; no untracked RNG; no wall-clock
-  in committed artifacts (timestamps appear only in runtime gate manifests).
+  in any persisted artifact (gate manifests embed no timestamp — they are
+  byte-identical for a given suite state).
 - One package per pytest subprocess in the aggregate gate — never all packages
   in a single pytest process (conftest collisions).
 - No leftover `template[_]code_project` strings; aim for zero. When referencing

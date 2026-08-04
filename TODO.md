@@ -20,9 +20,15 @@ QUARTERMASTER). No closed-out task archaeology; keep it pointed.
   `inventory.reconcile` against it and treat mismatches as fleet drift.
   Acceptance: `ops inventory` still shows 33 present with the live fleet, and
   the registry is the single source of truth.
-- **Provision agents for real.** `provision.execute_commands` already shells out
-  when `--execute` is passed; wire the exact herdr invocation once the fleet
-  tab/agent convention is finalised in the suite.
+
+## Provisioning state
+
+`provision.py` renders the herdr provisioning roster per the
+`herdr-multiple-hermes-dispatch` skill: `workspace create --label --cwd
+--no-focus`, `agent start --kind hermes --timeout 90000`, then a fire-and-forget
+`agent prompt` when a prompt file exists. Rendering is pure; `ops roster` prints
+it read-only and `ops roster --execute` runs it via a real `bash` subprocess
+(covered by tests with a fake `herdr` on PATH).
 
 ## Quality gates (current evidence)
 

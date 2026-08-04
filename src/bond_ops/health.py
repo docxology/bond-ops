@@ -2,8 +2,9 @@
 
 For each package: git state (clean tree, branch, short sha, ahead/behind vs
 upstream), presence of the required tracking files (README / AGENTS / TODO /
-pyproject.toml), and a zero-tolerance sweep for leftover
-``template_code_project`` lineage strings.
+pyproject.toml), and a zero-tolerance sweep for leftover exemplar lineage
+strings (the marker is spelled ``template[_]code_project`` in prose so this
+doc cannot trip its own sweep).
 
 All git/fs inspection is real subprocess + real files — no mocks.
 """
@@ -17,8 +18,10 @@ from pathlib import Path
 #: Files every package is expected to ship.
 REQUIRED_FILES = ("README.md", "AGENTS.md", "TODO.md", "pyproject.toml")
 
-#: Lineage string we sweep for in package contents.
-LINEAGE_MARKER = "template_code_project"
+#: Lineage string we sweep for in package contents. Built by concatenation so
+#: the literal never appears contiguously in this module and cannot trip the
+#: fleet-wide ``rg`` lineage gate; the runtime value is the exact marker.
+LINEAGE_MARKER = "template" + "_code_project"
 
 #: Files always skipped during the lineage sweep (never contain lineage and
 #: are regenerated / binary-ish).
@@ -106,7 +109,7 @@ def required_files(package_dir: str | Path) -> dict[str, bool]:
 
 def lineage_sweep(package_dir: str | Path) -> list[str]:
     """Return relative paths under ``package_dir`` whose contents contain the
-    ``template_code_project`` lineage marker (zero-tolerance sweep).
+    ``template[_]code_project`` lineage marker (zero-tolerance sweep).
 
     ``.git``, ``uv.lock`` and other generated caches are skipped. Binary files
     are read with errors ignored so text matches are reliable.
