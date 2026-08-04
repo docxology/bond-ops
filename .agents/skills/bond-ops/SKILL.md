@@ -53,9 +53,9 @@ uv run python scripts/z_generate_manuscript_variables.py
 - **No mocks.** Use real `tmp_path` fake packages (real src/tests) and real
   `git` repos; drive gates with `sys.executable -m pytest … -p no:cacheprovider`.
 - **Safe by default.** `provision` executes nothing without `--execute`.
-- **Lineage sweep** is zero-tolerance for `template_code_project`; bracket-split
-  the token (`template[_]code_project`) anywhere this repo must mention it, so
-  the doc cannot trip its own sweep.
+- **Lineage sweep** is zero-tolerance for the exemplar lineage marker
+  (spelled ``template[_]code_project`` in prose); bracket-split the token
+  anywhere this repo must mention it, so the doc cannot trip its own sweep.
 - **No `infrastructure.*` / sibling imports** in `src/bond_ops/` (stdlib +
   subprocess + PyYAML only).
 - **Manuscript tokens** come from `manuscript/config.yaml` +
