@@ -71,8 +71,12 @@ uv run python scripts/z_generate_manuscript_variables.py
 uv run python scripts/z_generate_figures.py
 ```
 
-The installed console script `ops` is the same entry point as
-`scripts/ops_gate.py`; either spelling works.
+The console script `ops` is declared in `[project.scripts]` as
+`bond_ops.cli:main` and installed into the environment by `uv sync`, so it is
+the same entry point as `scripts/ops_gate.py`; either spelling works. Two tests
+in `tests/test_guardrails.py` hold this together — one resolves the installed
+entry point back to `bond_ops.cli.main`, the other runs both spellings and
+requires byte-identical output.
 
 Exit codes: `0` success, `1` a failed gate verdict, `2` usage error (unknown
 slug, negative `--limit`, argparse misuse).

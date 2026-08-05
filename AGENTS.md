@@ -40,9 +40,13 @@ outside the sandbox rather than weakening a gate.
 
 - ≥90% **line + branch** coverage on `src/`. Enforced twice: the
   `--cov-fail-under=90` flag and `fail_under` in `[tool.coverage.report]`.
-- **No coverage pragmas.** There are currently none in `src/bond_ops/`; adding
-  one is a claim that a path cannot be reached from a test, and needs to be
-  argued rather than typed.
+- **No coverage pragmas.** There are none in `src/bond_ops/`, and that is
+  *enforced* by `tests/test_guardrails.py::test_no_coverage_pragmas_in_src`
+  rather than asserted here. Adding one is a claim that a path cannot be
+  reached from a test, and needs to be argued rather than typed. The other way
+  to hide a line — `exclude_lines` in `[tool.coverage.report]` — is pinned to
+  its three standard regexes by a companion test; the only line they currently
+  hide is `cli.py`'s `if __name__ == "__main__":` entrypoint guard.
 - Deterministic: fixed inputs, no untracked RNG, and **no wall-clock in any
   persisted artifact**. Gate manifests, roster reports and token maps embed no
   timestamp, so they are byte-identical for a given suite state.

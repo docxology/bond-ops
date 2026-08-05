@@ -5,6 +5,8 @@ Git state is exercised through real repositories created under tmp_path.
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 
 from bond_ops import health as h
@@ -233,3 +235,43 @@ def test_parse_porcelain_counts_and_ignores_blank_lines():
     status = " M src/a.py\n?? new.txt\nA  staged.py\n\n"
     assert h.parse_porcelain(status) == (2, 1)
     assert h.parse_porcelain("") == (0, 0)
+
+
+def test_lineage_sweep_skips_unreadable_file(tmp_path):
+    """A file that cannot be read is skipped, not raised on.
+
+    Uses a real ``chmod 000`` file (no mock); the sweep must still report the
+    lineage hit in the sibling file it *can* read.
+    """
+    if os.geteuid() == 0:
+        raise AssertionError(
+            "run this suite as a non-root user: root can read a chmod-000 file, "
+            "so the unreadable-file branch of lineage_sweep would go unexercised"
+        )
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    unreadable = pkg / "locked.txt"
+    unreadable.write_text(MARKER + "\n", encoding="utf-8")
+    unreadable.chmod(0o000)
+    (pkg / "visible.md").write_text(MARKER + "\n", encoding="utf-8")
+    try:
+        hits = h.lineage_sweep(pkg)
+    finally:
+        unreadable.chmod(0o600)
+    assert hits == ["visible.md"]  # locked.txt skipped, sweep did not raise
+
+
+def test_binary_version_unexecutable_binary(tmp_path, monkeypatch):
+    """A binary that resolves on PATH but cannot be exec'd reports ``None``.
+
+    A real file with the executable bit set but an invalid executable format
+    makes the kernel return ``ENOEXEC``, which surfaces as ``OSError``.
+    """
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    broken = bindir / "brokenbin"
+    broken.write_bytes(b"\x00\x01\x02\x03 not an executable")
+    broken.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bindir))
+    assert shutil.which("brokenbin") == str(broken)  # it really does resolve
+    assert h._binary_version("brokenbin") is None

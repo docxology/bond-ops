@@ -25,6 +25,18 @@
 | `test_cli.py` | in-process `ops` CLI: every subcommand, `--json` manifests, human tables, exit codes, `--limit` bounds, and `COMMANDS`-vs-parser parity. |
 | `test_real_fleet.py` | gate runner + health/layout/toolchain probes against the live fleet. |
 | `test_scripts_smoke.py` | subprocess smoke of `ops` CLI and the variables script. |
+| `test_guardrails.py` | the documented guardrails, executed: zero coverage pragmas in `src/`, the pinned `exclude_lines` set, the installed `ops` console script resolving to `cli:main` and matching the wrapper's output, and the manuscript's quoted CLI line matching what the CLI prints. |
+
+Two of these are worth naming because they are the ones that used to be prose:
+`test_no_coverage_pragmas_in_src` replaces four documents asserting a count,
+and `test_two_live_gate_runs_produce_byte_identical_manifests` /
+`test_gate_json_is_byte_identical_across_two_cli_invocations` replace a
+serializer round-trip that could not have detected a nondeterministic manifest.
+
+**Run this suite as a non-root user.** `test_lineage_sweep_skips_unreadable_file`
+uses a real `chmod 000` file to reach the unreadable-file branch; root can read
+it anyway, so the test fails loudly under root rather than skipping and leaving
+the branch silently unexercised.
 
 ## Helpers
 

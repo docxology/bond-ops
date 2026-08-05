@@ -84,6 +84,17 @@ Runs the canonical per-package gate and reduces it to a verdict.
 state, two runs produce byte-identical JSON, which is what makes the
 determinism assertion in the test suite meaningful.
 
+There is one place a clock reading can still enter, and it is worth being
+explicit about: the `error` field of a failing package is an 800-character
+excerpt of that package's *own* test output, and pytest ends its summary with
+`1 failed in 0.10s`. `scrub_wallclock()` replaces elapsed-time readings in that
+excerpt with `<elapsed>` before it is stored, so the excerpt keeps the failure
+text a human needs and loses only the number that cannot be reproduced. Without
+it, "byte-identical across runs" would hold for a *passing* fleet and quietly
+fail for a failing one — which is exactly the case a fleet gate exists to
+report on. The two-invocation determinism tests drive a failing package on
+purpose so this cannot regress.
+
 Note the verdict semantics: `all_pass` requires at least one present package
 and zero failures among the present ones. Packages *missing* from disk are
 counted in `missing_count` but do not by themselves fail the gate — use

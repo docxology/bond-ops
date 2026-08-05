@@ -139,7 +139,9 @@ def lineage_sweep(package_dir: str | Path) -> list[str]:
             continue
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")
-        except OSError:  # pragma: no cover - unreadable file
+        except OSError:
+            # Unreadable file (permissions, vanished mid-sweep). Covered by
+            # tests/test_health.py::test_lineage_sweep_skips_unreadable_file.
             continue
         if LINEAGE_MARKER in text:
             hits.append(str(path.relative_to(root)))
@@ -194,7 +196,10 @@ def _binary_version(binary: str, flag: str = "--version") -> str | None:
         return None
     try:
         proc = subprocess.run([path, flag], capture_output=True, text=True, timeout=10)
-    except (OSError, subprocess.TimeoutExpired):  # pragma: no cover - env edge
+    except (OSError, subprocess.TimeoutExpired):
+        # A binary that resolves on PATH but cannot be executed (bad format,
+        # revoked permission) or hangs past the probe timeout. Covered by
+        # tests/test_health.py::test_binary_version_unexecutable_binary.
         return None
     text = (proc.stdout or "").strip()
     return text.splitlines()[0] if text else None

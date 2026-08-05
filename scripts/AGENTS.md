@@ -17,5 +17,12 @@ The scripts self-insert `../src` into `sys.path` so they can be run directly
 - One subcommand per concern; `ops gate --json` is the machine-readable surface.
 - Defaults are read-only/safe: `ops roster` prints; it does not start agents
   unless `--execute` is given.
-- Exit codes: 0 on success / clean gate; 1 when any present package fails its
-  gate or any reported package is unhealthy; argparse errors exit 2.
+- Exit codes: `0` on success / clean gate; `1` when a `gate` verdict fails
+  (any present package failed, or nothing was gated at all); `2` on usage
+  error (unknown slug, negative `--limit`, argparse misuse).
+  `health`, `inventory` and read-only `roster` are **reporting commands and
+  always exit `0`**, however many packages they report as unhealthy or
+  missing — read the verdict from `--json`, not from `$?`. Pinned by
+  `tests/test_cli.py::test_health_exit_code_is_zero_even_when_packages_are_unhealthy`.
+  (`roster --execute` is the one exception: it exits `1` if the provisioning
+  script fails.)

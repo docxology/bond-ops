@@ -29,7 +29,7 @@ def test_real_fleet_gate_runner_on_self():
         "pytest",
         "tests/",
         "--cov=src",
-        "--cov-fail-under=90",
+        f"--cov-fail-under={g.COVERAGE_FLOOR}",
         "--ignore=tests/test_real_fleet.py",
         "-p",
         "no:cacheprovider",

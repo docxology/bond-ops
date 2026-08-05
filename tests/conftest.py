@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import shutil
 import sys
 from types import SimpleNamespace
 
@@ -134,6 +135,33 @@ def fake_herdr(tmp_path, monkeypatch):
 
 def read_log(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8").strip()
+
+
+@pytest.fixture
+def no_herdr_path(tmp_path, monkeypatch):
+    """A real ``PATH`` containing the shell and interpreter but **no** ``herdr``.
+
+    The provisioning script resolves ``herdr`` through ``PATH``, so a test that
+    means "the daemon is unreachable" has to actually make it unreachable.
+    Without this, such a test inherits the developer's ambient ``PATH``; if a
+    real ``herdr`` daemon happens to be running, the guard branch is never
+    taken and the script executes real ``workspace create`` / ``agent start``
+    calls against the live daemon.
+
+    Only ``PATH`` is redirected, and the two binaries the script genuinely
+    needs are real symlinks to the real tools — this is environment isolation,
+    not object substitution.
+    """
+    bindir = tmp_path / "sterile-bin"
+    bindir.mkdir()
+    for tool in ("bash", "python3"):
+        real = shutil.which(tool)
+        assert real, f"{tool} must exist on PATH for the provisioning script to run"
+        (bindir / tool).symlink_to(real)
+    monkeypatch.setenv("PATH", str(bindir))
+    # Fail loudly rather than silently testing nothing.
+    assert shutil.which("herdr") is None, "herdr is still reachable; the guard would be vacuous"
+    return bindir
 
 
 @pytest.fixture

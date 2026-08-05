@@ -21,8 +21,11 @@ All importable fleet-operations logic lives here. `scripts/` remains thin.
   (`figures.py` only, Agg backend). In particular nothing here imports
   `bond-api`: this package ships no `mission.py` and no `MissionProvider`
   by design (see `../docs/architecture.md`).
-- **No coverage pragmas.** There are none in this directory; adding one is a
-  claim a path is untestable and must be argued.
+- **No coverage pragmas.** There are none in this directory, enforced by
+  `tests/test_guardrails.py::test_no_coverage_pragmas_in_src` (a sweep, not a
+  sentence); adding one is a claim a path is untestable and must be argued.
+  The `[tool.coverage.report] exclude_lines` regexes are pinned by a companion
+  test and currently hide exactly one line — `cli.py`'s `__main__` guard.
 - **Verdicts are frozen, diagnostics may widen.** `HealthReport.healthy` and
   `PackageGateResult.passed` are published manifest contracts; add a new probe
   as its own field instead of folding it in.

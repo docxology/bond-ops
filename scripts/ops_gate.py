@@ -9,8 +9,11 @@ Delegates entirely to :func:`bond_ops.cli.main`; this file only bootstraps
     uv run python scripts/ops_gate.py health
     uv run python scripts/ops_gate.py roster
 
-The installed console script ``ops`` (``[project.scripts]`` in pyproject.toml)
-is the identical entry point; either spelling works.
+The console script ``ops`` — declared as ``ops = "bond_ops.cli:main"`` under
+``[project.scripts]`` in pyproject.toml and installed by ``uv sync`` — is the
+identical entry point; either spelling works. ``tests/test_guardrails.py``
+resolves the installed entry point back to :func:`bond_ops.cli.main` and
+diffs the output of both spellings, so this sentence cannot go stale.
 """
 
 from __future__ import annotations

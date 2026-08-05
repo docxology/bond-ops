@@ -7,7 +7,9 @@ measured from real subprocess and filesystem state:
 - **Inventory.** `ops inventory` reconciles the canonical roster
   ([@def:suite-roster]) against `projects/working/bond/` and reports present,
   missing, and unexpected directories. A complete fleet shows `present
-  {{SUITE_SIZE}}/{{SUITE_SIZE}} · complete yes` ([@eq:reconcile-verdict]).
+  {{SUITE_SIZE}}/{{SUITE_SIZE}} · missing 0 · complete True`
+  ([@eq:reconcile-verdict]); the verdict is rendered as the Python boolean it
+  is, and a test binds this quoted line to the CLI's real output.
 - **Aggregate gate.** `ops gate --json` emits a deterministic
   `{{GATE_MANIFEST}}` manifest ([@def:aggregate-gate]) containing, for each
   package, its presence, pytest pass/fail, measured coverage, ruff and mypy

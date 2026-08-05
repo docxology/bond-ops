@@ -279,3 +279,68 @@ def test_inventory_human_complete_fleet(capsys, tmp_path):
     assert code == 0
     assert "complete True" in out
     assert "missing:" not in out
+
+
+def test_health_exit_code_is_zero_even_when_packages_are_unhealthy(capsys, tmp_path):
+    """``ops health`` reports; it never gates.
+
+    The exit-code contract is ``1`` only for a failed *gate* verdict. This test
+    pins the reporting-only semantics of ``health`` against a root where every
+    roster package is missing (33 unhealthy, still exit 0), in both the human
+    and the ``--json`` form.
+    """
+    root = tmp_path / "fleet"
+    root.mkdir()
+
+    code = main(["health", "--suite-root", str(root)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "MISSING" in out  # there really are unhealthy packages to report
+
+    code_json = main(["health", "--json", "--suite-root", str(root)])
+    data = json.loads(capsys.readouterr().out)
+    assert code_json == 0
+    assert data["summary"]["healthy"] == 0
+    assert data["summary"]["missing"] == 33
+
+
+#: A real ``uv`` that fails the gate and stamps a *different* elapsed time into
+#: its output on every invocation (``$$`` is the shell's pid). Any wall-clock
+#: reading that survives into the persisted manifest makes two runs differ, so
+#: the determinism test below is falsifiable by construction rather than green
+#: by construction.
+FAKE_UV_VARYING_DURATION = """#!/bin/sh
+echo "tests/test_core.py F"
+echo "E       assert False"
+echo "FAIL Required test coverage of 90% not reached. Total coverage: 55.56%"
+echo "TOTAL                        9      4   55.56%"
+echo "=========== 1 failed in $$.00s ==========="
+exit 2
+"""
+
+
+def test_gate_json_is_byte_identical_across_two_cli_invocations(capsys, tmp_path, fake_uv):
+    """Two live ``ops gate --json`` runs over an unchanged fleet print the same bytes.
+
+    This is the manuscript's "redundant live run … asserted byte-identical
+    across two invocations" claim, executed at the CLI surface. The gate runs a
+    real subprocess whose output carries a *different* elapsed time each time,
+    which is exactly the nondeterminism that used to leak into the persisted
+    ``error`` excerpt; the two payloads must still match.
+    """
+    fake_uv.put(FAKE_UV_VARYING_DURATION)
+    root = tmp_path / "fleet"
+    root.mkdir()
+    make_package(root, "dr_no")
+    argv = ["gate", "--json", "--only", "dr_no", "--suite-root", str(root)]
+
+    assert main(argv) == 1  # the fake gate genuinely fails
+    first = capsys.readouterr().out
+    assert main(argv) == 1
+    second = capsys.readouterr().out
+
+    payload = json.loads(first)
+    error = payload["packages"][0]["error"]
+    assert "assert False" in error  # the diagnostic text really is persisted
+    assert "<elapsed>" in error  # a varying duration really was present
+    assert first == second

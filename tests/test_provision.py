@@ -64,13 +64,21 @@ def test_format_provision_readonly(fleet):
     assert "workspace create" in text
 
 
-def test_execute_script_daemon_guard(fleet):
-    """With no herdr on PATH, `herdr status` fails and the script aborts (safe)."""
+def test_execute_script_daemon_guard(fleet, no_herdr_path):
+    """With no herdr on PATH, `herdr status` fails and the script aborts (safe).
+
+    ``no_herdr_path`` is what makes this a guard rather than a coin flip: the
+    test previously ran under the ambient ``PATH``, so on a machine with a live
+    herdr daemon it took the *success* branch and issued real ``workspace
+    create`` calls instead of exercising the abort. The fixture asserts herdr
+    really is unreachable before the script runs.
+    """
     entries = pv.build_roster(roster_=ROSTER[:1], suite_root=fleet)
     script = pv.render_provision_script(entries)
     res = pv.execute_script(script, timeout=60)
     assert res.passed is False
     assert res.returncode == 1
+    assert "herdr daemon not running" in res.output  # the guard, not some other failure
 
 
 def test_execute_script_success(tmp_path, fake_herdr, fleet):

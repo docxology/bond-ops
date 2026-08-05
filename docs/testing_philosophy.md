@@ -38,7 +38,7 @@ substitution is a mock.
 | Git health | A real `git init`, real commits, real modifications and real untracked files under `tmp_path` to flip clean/dirty. The porcelain reduction is additionally unit-tested through the pure `parse_porcelain`. |
 | Inventory reconcile | Empty, partial, and fully-populated `tmp_path` roots, plus the live suite root. |
 | Provisioning render | Pure string comparison — no subprocess needed, because rendering is pure. |
-| Provisioning execute | A real `herdr` shell script on an override `PATH`: one that satisfies the daemon check and emits the `workspace create` JSON payload, and a chattier variant that writes a transcript to stdout so the CLI's echo branch runs for real. The daemon-absent guard is exercised with no `herdr` on `PATH` at all. |
+| Provisioning execute | A real `herdr` shell script on an override `PATH`: one that satisfies the daemon check and emits the `workspace create` JSON payload, and a chattier variant that writes a transcript to stdout so the CLI's echo branch runs for real. The daemon-absent guard runs with `PATH` set to a sterile directory holding only symlinked `bash` and `python3` — the `no_herdr_path` fixture, which asserts `shutil.which("herdr") is None` before the script runs. This sentence used to be aspirational: the test inherited the ambient `PATH`, so on a machine with a live herdr daemon it silently took the *success* branch and issued real `workspace create` calls. |
 | Layout probes | Real `pyproject.toml` / `tests/` / `src/` files under `tmp_path`, in both the matching and the name-drift case. |
 | Toolchain probe | Real `git` / `uv` / `python` on `PATH`, plus a deliberately nonexistent binary for the `None` branch. |
 | Figures | Real PNG files written to `tmp_path`, checked for the PNG magic bytes and for byte-identical output across two renders. |
@@ -75,15 +75,41 @@ If coverage drops, add a test for the uncovered path. Never delete a test, and
 never reach for `# pragma: no cover` to make a number move. A pragma is a claim
 that a path cannot be reached from a test; each one is a small piece of
 untested surface, and a stale pragma sitting on a path that *is* covered is
-worse still, because it hides real evidence. There are currently no coverage
-pragmas in `src/bond_ops/`.
+worse still, because it hides real evidence.
+
+There are no coverage pragmas in `src/bond_ops/` — and because "there are none"
+is exactly the kind of sentence that goes stale the moment someone types one,
+it is a test rather than a claim:
+`tests/test_guardrails.py::test_no_coverage_pragmas_in_src` sweeps every module
+under `src/bond_ops/` and fails with the file and line of any pragma it finds.
+Two of the three pragmas that used to live here were retired by covering the
+paths they hid: `lineage_sweep`'s unreadable-file branch is now exercised with a
+real `chmod 000` file, and `_binary_version`'s exec-failure branch with a real
+file that is executable but not a valid executable (`ENOEXEC`).
+
+The second way to hide a line is `exclude_lines` in `[tool.coverage.report]`,
+so that list is pinned to its three standard regexes by a companion test. Be
+precise about what that leaves excluded: the `if __name__ == .__main__.:`
+regex hides `cli.py`'s two-line entrypoint guard, which cannot be driven from
+an in-process test. That is the **only** production line in this package
+excluded from measurement by any mechanism, and a third test asserts the
+pattern matches in `cli.py` and nowhere else. The 100% in
+`docs/_generated/COUNTS.md` should be read as "100% of everything except that
+guard".
 
 ## Determinism
 
 - **No wall-clock in any persisted artifact.** The gate manifest, the roster
   report, and the manuscript token map embed no timestamp — that is what makes
   the byte-identical assertion across two runs meaningful. (Console output may
-  mention durations; nothing written to disk does.)
+  mention durations; nothing written to disk does.) The assertion is a real
+  two-invocation comparison, not a serializer round-trip: both
+  `test_two_live_gate_runs_produce_byte_identical_manifests` (module level) and
+  `test_gate_json_is_byte_identical_across_two_cli_invocations` (CLI level) run
+  the gate *twice*, each spawning its own pytest subprocess against the same
+  on-disk fleet, and diff the two payloads. The weaker "serialize one report
+  twice" check still exists, but it is named for what it is and documents that
+  it is not the determinism gate.
 - **No randomness.** No `random` draws, no set-iteration order leaking into
   output, no dependence on filesystem listing order — `reconcile` sorts its
   unexpected set, and every sweep follows canonical roster order.

@@ -13,6 +13,7 @@ small deterministic fake packages without invoking ``uv`` or the live fleet.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
@@ -27,8 +28,22 @@ from .inventory import (
     PackageRecord,
 )
 
+#: Coverage floor enforced by the canonical gate command (percent). Single
+#: source of truth: :data:`DEFAULT_PYTEST_CMD` interpolates it rather than
+#: repeating the number, and the ``COVERAGE_FLOOR`` manuscript token is derived
+#: from it, so changing this constant moves the command, the manuscript, and
+#: the figure floor line together.
+COVERAGE_FLOOR = 90
+
 #: Canonical per-package gate (run with cwd = the package's own directory).
-DEFAULT_PYTEST_CMD = ("uv", "run", "pytest", "tests/", "--cov=src", "--cov-fail-under=90")
+DEFAULT_PYTEST_CMD = (
+    "uv",
+    "run",
+    "pytest",
+    "tests/",
+    "--cov=src",
+    f"--cov-fail-under={COVERAGE_FLOOR}",
+)
 DEFAULT_RUFF_CMD = ("uv", "run", "ruff", "check", "src/")
 DEFAULT_MYPY_CMD = ("uv", "run", "mypy", "src/")
 
@@ -39,8 +54,35 @@ DEFAULT_TIMEOUT = 600
 #: the CLI and manuscript tokens).
 GATE_MANIFEST_NAME = "bond-ops-gate"
 
-#: Coverage floor enforced by the canonical gate command (percent).
-COVERAGE_FLOOR = 90
+
+#: Placeholder substituted for an elapsed-time reading in persisted text.
+WALLCLOCK_REDACTION = "<elapsed>"
+
+#: Elapsed-time spellings that appear in captured tool output: pytest's
+#: ``1 failed in 0.10s`` / ``in 1.5 seconds``, and ``H:MM:SS`` totals.
+_WALLCLOCK_PATTERNS = (
+    re.compile(r"\d+(?:\.\d+)?\s*(?:s|secs?|seconds?)\b"),
+    re.compile(r"\b\d+:\d{2}:\d{2}\b"),
+)
+
+
+def scrub_wallclock(text: str) -> str:
+    """Replace elapsed-time readings in ``text`` with :data:`WALLCLOCK_REDACTION`.
+
+    Captured tool output is the one place a wall-clock reading can leak into a
+    persisted artifact: pytest ends its summary with ``1 failed in 0.10s``, and
+    that number changes between two otherwise-identical runs. Applying this to
+    the ``error`` excerpt stored in the gate manifest is what makes the
+    documented "byte-identical for a given suite state" property hold for a
+    *failing* fleet as well as a passing one — the excerpt keeps the failure
+    text a human needs and loses only the number that cannot be reproduced.
+
+    Nothing else is altered: the full, unredacted output is still what the gate
+    parses for coverage and what the underlying command prints.
+    """
+    for pattern in _WALLCLOCK_PATTERNS:
+        text = pattern.sub(WALLCLOCK_REDACTION, text)
+    return text
 
 
 @dataclass(frozen=True)
@@ -212,7 +254,10 @@ def gate_one(
             ruff_passed=ruff_ok,
             mypy_passed=mypy_ok,
             passed=passed,
-            error=pytest_cr.output[-800:] if not pytest_cr.passed else None,
+            # Scrubbed: the excerpt is persisted in the manifest, and pytest's
+            # trailing "1 failed in 0.10s" would otherwise make two runs over
+            # an unchanged fleet differ.
+            error=scrub_wallclock(pytest_cr.output[-800:]) if not pytest_cr.passed else None,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
         return PackageGateResult(
@@ -223,7 +268,7 @@ def gate_one(
             ruff_passed=None,
             mypy_passed=None,
             passed=False,
-            error=str(exc),
+            error=scrub_wallclock(str(exc)),
         )
 
 

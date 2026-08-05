@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 
 import pytest
@@ -10,7 +11,16 @@ from conftest import FAKE_UV_SLOW, make_package, read_log
 
 from bond_ops import gates as g
 
-PYTEST = (sys.executable, "-m", "pytest", "tests/", "--cov=src", "--cov-fail-under=90")
+#: The canonical gate, retargeted at the venv interpreter. The floor flag is
+#: derived from ``COVERAGE_FLOOR`` so this helper cannot drift from the gate.
+PYTEST = (
+    sys.executable,
+    "-m",
+    "pytest",
+    "tests/",
+    "--cov=src",
+    f"--cov-fail-under={g.COVERAGE_FLOOR}",
+)
 
 
 def test_parse_coverage():
@@ -90,7 +100,7 @@ def test_gate_one_default_uv_commands(tmp_path, fake_uv):
     assert res.mypy_passed is True
     assert res.passed is True
     log = read_log(fake_uv.log)
-    assert "pytest tests/ --cov=src --cov-fail-under=90" in log
+    assert f"pytest tests/ --cov=src --cov-fail-under={g.COVERAGE_FLOOR}" in log
     assert "ruff check src/" in log
     assert "mypy src/" in log
 
@@ -176,7 +186,15 @@ def test_aggregate_gate_missing_and_limit(tmp_path):
     assert lim.passed_count == 2
 
 
-def test_manifest_roundtrip_and_determinism(tmp_path):
+def test_manifest_roundtrip_and_serialization_is_stable(tmp_path):
+    """Round-trip + serializer stability for a *single* gate run.
+
+    This asserts only that serializing one report twice is stable — it is a
+    weak property (``json.dumps(..., sort_keys=True)`` of an unchanged object)
+    and it is **not** the cross-run determinism claim. That claim is carried by
+    :func:`test_two_live_gate_runs_produce_byte_identical_manifests`, which
+    runs the gate twice for real.
+    """
     root = tmp_path / "fleet"
     root.mkdir()
     make_package(root, "dr_no")
@@ -185,7 +203,7 @@ def test_manifest_roundtrip_and_determinism(tmp_path):
     )
     first = g.manifest_to_json(rep)
     second = g.manifest_to_json(rep)
-    assert first == second  # deterministic (same suite state)
+    assert first == second  # same object serialized twice
     data = json.loads(first)
     assert data["manifest"] == "bond-ops-gate"
     assert data["summary"]["passed"] == 1
@@ -300,3 +318,70 @@ def test_aggregate_gate_negative_limit_raises(tmp_path):
         g.run_aggregate_gate(
             suite_root=root, limit=-1, pytest_cmd=PYTEST, run_ruff=False, run_mypy=False
         )
+
+
+def test_default_pytest_cmd_derives_the_floor_from_coverage_floor():
+    """The gate command's floor flag must BE ``COVERAGE_FLOOR``, not a twin literal.
+
+    ``COVERAGE_FLOOR`` also feeds the manuscript token and the figure floor
+    line; if the flag were a second hand-typed literal, moving the constant
+    would silently desynchronise the documented floor from the enforced one.
+    """
+    assert f"--cov-fail-under={g.COVERAGE_FLOOR}" in g.DEFAULT_PYTEST_CMD
+    floor_flags = [a for a in g.DEFAULT_PYTEST_CMD if a.startswith("--cov-fail-under=")]
+    assert floor_flags == [f"--cov-fail-under={g.COVERAGE_FLOOR}"]
+
+
+def test_two_live_gate_runs_produce_byte_identical_manifests(tmp_path):
+    """Two *separate* live gate runs over an unchanged suite agree byte-for-byte.
+
+    This is the real determinism gate behind the manuscript's
+    ``prop:manifest-determinism``: each call spawns its own real pytest
+    subprocess against the same on-disk fake fleet, so anything non-deterministic
+    that reaches the manifest (a wall-clock field, a set-ordered list, a
+    run-varying coverage value) makes the two payloads differ.
+    """
+    root = tmp_path / "fleet"
+    root.mkdir()
+    make_package(root, "dr_no")
+    make_package(root, "goldfinger", failing=True)
+    kwargs = dict(
+        suite_root=root,
+        only_slugs=("dr_no", "goldfinger"),
+        pytest_cmd=PYTEST,
+        run_ruff=False,
+        run_mypy=False,
+    )
+    first = g.manifest_to_json(g.run_aggregate_gate(**kwargs))
+    second = g.manifest_to_json(g.run_aggregate_gate(**kwargs))
+    assert first == second
+
+    payload = json.loads(first)
+    # The runs really did execute (a pass, a fail, and a measured coverage) —
+    # a manifest of nothing would also be trivially identical across runs.
+    assert payload["summary"]["passed"] == 1
+    assert payload["summary"]["failed"] == 1
+    assert payload["summary"]["coverage_measured"] >= 1
+
+
+def test_scrub_wallclock_redacts_elapsed_readings():
+    """The scrubber removes elapsed times and leaves the failure text intact."""
+    assert (
+        g.scrub_wallclock("1 failed in 0.10s =====") == f"1 failed in {g.WALLCLOCK_REDACTION} ====="
+    )
+    assert g.scrub_wallclock("took 1.5 seconds") == f"took {g.WALLCLOCK_REDACTION}"
+    assert g.scrub_wallclock("total 0:01:01 elapsed") == f"total {g.WALLCLOCK_REDACTION} elapsed"
+    # Non-timing content — including the assertion text a human needs — survives.
+    survivor = "E       assert False\ntests/test_core.py:2: AssertionError"
+    assert g.scrub_wallclock(survivor) == survivor
+
+
+def test_failing_package_error_excerpt_carries_no_wallclock(tmp_path):
+    """A real failing gate stores a redacted, still-useful error excerpt."""
+    pkg = make_package(tmp_path, "failpkg", failing=True)
+    res = g.gate_one(pkg, pytest_cmd=PYTEST, run_ruff=False, run_mypy=False)
+    assert res.passed is False
+    assert res.error is not None
+    assert g.WALLCLOCK_REDACTION in res.error  # a duration really was present
+    assert not re.search(r"\bin \d+\.\d+s\b", res.error)
+    assert "AssertionError" in res.error or "assert" in res.error  # still diagnostic

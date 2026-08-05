@@ -289,5 +289,5 @@ def main(argv: Sequence[str] | None = None) -> int:
     return handlers[args.command](args)
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     sys.exit(main())
