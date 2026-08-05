@@ -18,8 +18,10 @@ suite only to reconcile the roster, run per-package gates, and report health.
 | `src/bond_ops/health.py` | Per-repo git health (clean tree, ahead/behind), required-file presence (README/AGENTS/TODO/pyproject), a zero-tolerance `template[_]code_project` lineage sweep, **layout probes** (pyproject-name-vs-slug drift, `tests/`/`src/` present), and a `tool_versions()` toolchain probe. |
 | `src/bond_ops/provision.py` | Emits the informational herdr provisioning roster and a deterministic machine-readable roster report (kind + prompt-brief counts). Read-only by default; execution only with an explicit `--execute`. |
 | `src/bond_ops/manuscript_variables.py` | Hydrates manuscript `{{TOKEN}}`s from `manuscript/config.yaml` + inventory constants. |
+| `src/bond_ops/figures.py` | Deterministic headless-Agg figure generators: roster composition, fleet-health sweep, gate coverage (with floor line), gate verdict heatmap. Byte-identical for fixed inputs. |
 | `scripts/ops_gate.py` | Thin `ops` CLI: `ops inventory`, `ops gate [--json]`, `ops health`, `ops roster`. |
 | `scripts/z_generate_manuscript_variables.py` | Thin wrapper writing the manuscript token map to `output/variables/`. |
+| `scripts/z_generate_figures.py` | Thin wrapper rendering the four manuscript figures into `output/figures/`. |
 
 ## Quick usage
 
@@ -47,6 +49,9 @@ uv run python scripts/ops_gate.py roster
 
 # Provisioning roster, machine-readable
 uv run python scripts/ops_gate.py roster --json
+
+# Manuscript figures (roster composition, fleet health, gate coverage/verdicts)
+uv run python scripts/z_generate_figures.py
 ```
 
 The sprinkle of business logic lives in `src/bond_ops/`; `scripts/` keeps to

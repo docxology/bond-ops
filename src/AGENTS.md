@@ -11,6 +11,7 @@ All importable fleet-operations logic lives here. `scripts/` remains thin.
 | `health.py` | `git_health()`, `required_files()`, `lineage_sweep()`, `probe_layout()`/`_read_project_name()`, `tool_versions()`, `health()`, `sweep()`, `HealthReport` (+`probes`, `layout_ok`). |
 | `provision.py` | `build_roster()`, `resolve_prompt()`, `render_provision_script()`, `format_provision()`, `roster_report()`, `execute_script()` (dry-run default via CLI). |
 | `cli.py` | `ops` argparse surface: `inventory`/`gate`/`health`/`roster`, all with `--json` and `--suite-root`; `ops roster --json` emits the roster manifest. |
+| `figures.py` | `plot_roster_composition()`, `plot_fleet_health()`, `plot_gate_coverage()`, `plot_gate_verdicts()` — headless-Agg PNG generators, byte-deterministic. |
 | `manuscript_variables.py` | `read_identity()`, `build_tokens()`, `generate_variables()`, `load_generated()`. |
 
 ## Rules

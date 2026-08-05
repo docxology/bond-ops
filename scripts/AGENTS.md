@@ -7,6 +7,7 @@
 |---|---|
 | `ops_gate.py` | `ops` CLI — `inventory`, `gate [--json]`, `health [--json]`, `roster [--json]`/`roster --execute`. Parse args + print; delegate to `bond_ops.*`. |
 | `z_generate_manuscript_variables.py` | Writes the manuscript `{{TOKEN}}` map to `output/variables/`. |
+| `z_generate_figures.py` | Renders the four manuscript figures into `output/figures/` (real self-gate + fleet sweep). |
 
 The scripts self-insert `../src` into `sys.path` so they can be run directly
 (`python scripts/ops_gate.py inventory`). Run from the package root.

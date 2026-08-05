@@ -32,6 +32,22 @@ QUARTERMASTER). No closed-out task archaeology; keep it pointed.
   `--ignore=tests/test_real_fleet.py` to avoid recursion); health + layout +
   toolchain probes run against real live siblings. 0 mocks, 0 skips.
 
+## Phase-5 manuscript + visualizations (this build)
+
+- [x] `src/bond_ops/figures.py` — deterministic headless-Agg generators:
+  `plot_roster_composition` (frozen roster data), `plot_fleet_health` (real
+  sweep over all 33), `plot_gate_coverage` (floor line) and `plot_gate_verdicts`
+  (pytest/ruff/mypy/passed heatmap). Byte-identical for fixed inputs.
+- [x] `scripts/z_generate_figures.py` — thin wrapper rendering the four figures
+  into `output/figures/` (gate figures come from a real self-gate).
+- [x] Manuscript deepened with **auto-numbered formalisms**: `{#sec:}` section
+  labels, `::: {.definition/#prop}` blocks, `{#eq:}` equations, `{#fig:}`
+  figures with self-contained captions, `{#tbl:}` tables, `[@key]` citations;
+  preamble LaTeX block; SYNTAX.md formalism registry.
+- [x] `tests/test_figures.py` (PNG magic + byte-determinism) and
+  `tests/test_manuscript_formalisms.py` (every declared formalism referenced,
+  every reference resolves, every citation key in `references.bib`).
+
 ## Integration points (bind when the sibling lands)
 
 - **Consume a shared suite registry (bond-coordinator).** Today `inventory.py`

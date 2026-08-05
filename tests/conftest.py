@@ -15,6 +15,9 @@ from types import SimpleNamespace
 
 import pytest
 
+#: Headless matplotlib for deterministic figure tests (never opens a display).
+os.environ.setdefault("MPLBACKEND", "Agg")
+
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]

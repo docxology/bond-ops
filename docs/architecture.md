@@ -19,6 +19,8 @@ sibling packages     inspected READ-ONLY (reconcile, gate, health, provision)
   probes (`probe_layout`) + toolchain probe (`tool_versions`).
 - `src/bond_ops/provision.py` — command generation, roster report, safe execution.
 - `src/bond_ops/cli.py` — the `ops` argparse surface (in `src/`, not `scripts/`).
+- `src/bond_ops/figures.py` — headless-Agg figure generators (roster
+  composition, fleet health, gate coverage/verdicts); byte-deterministic.
 - `src/bond_ops/manuscript_variables.py` — `{{TOKEN}}` map for the manuscript.
 
 ## Dependency rule

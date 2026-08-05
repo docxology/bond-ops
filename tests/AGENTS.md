@@ -20,6 +20,8 @@
 | `test_health.py` | real git repos: clean/dirty/untracked, required files, lineage sweep, layout probes, toolchain probe. |
 | `test_provision.py` | herdr provisioning lines/script, dry-run vs real execution, roster report. |
 | `test_manuscript_variables.py` | token hydration + live manuscript cross-reference. |
+| `test_manuscript_formalisms.py` | auto-numbered formalism registry: every declared fig/tbl/eq/def/prop referenced, every reference resolves, every citation key in `references.bib`. |
+| `test_figures.py` | headless-Agg PNG generators: magic bytes, non-trivial size, byte-determinism, empty-data guards. |
 | `test_cli.py` | in-process `ops` CLI: every subcommand, `--json` manifests, exit codes. |
 | `test_real_fleet.py` | gate runner + health/layout/toolchain probes against the live fleet. |
 | `test_scripts_smoke.py` | subprocess smoke of `ops` CLI and the variables script. |

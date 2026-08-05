@@ -1,10 +1,6 @@
-# References
+# References {#sec:references}
 
-- Friedman, Daniel Ari. *BOND-OPS: Fleet Health, Aggregate Gates, and
-  Provisioning for PROJECT BOND*. PROJECT BOND suite, Layer 4 (codename
-  QUARTERMASTER), 2026. Local-only working tree under
-  `projects/working/bond/`.
-- Krekel et al. — *pytest* (test framework for every fleet gate).
-- Batchelder et al. — *Coverage.py* (line+branch coverage at the gate floor).
-- Marsh et al. — *Ruff* (lint + format in the aggregate gate).
-- Lehtosalo et al. — *mypy* (static typing in the aggregate gate).
+Bibliography lives in [`manuscript/references.bib`](references.bib) and is
+read by Pandoc with `--natbib` during PDF render. The sources cited in this
+manuscript are [@bond_ops] (the package identity record), [@pytest],
+[@coveragepy], [@ruff] and [@mypy].
