@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 from pathlib import Path
 
 import pytest
 from conftest import make_package
 
-from bond_ops.cli import _parse_only, _resolve_root, main
+from bond_ops.cli import COMMANDS, _parse_only, _resolve_root, build_parser, main
 from bond_ops.inventory import DEFAULT_SUITE_ROOT
 
 
@@ -169,3 +171,111 @@ def test_health_json_has_probes(capsys, tmp_path):
     assert "probes" in first
     assert "layout_ok" in first
     assert first["present"] is False
+
+
+def test_gate_limit_zero_gates_nothing(capsys, tmp_path, fake_uv):
+    """``--limit 0`` must gate nothing, never fall back to the whole fleet."""
+    root = tmp_path / "fleet"
+    root.mkdir()
+    make_package(root, "bond-ops")
+    make_package(root, "dr_no")
+    code = main(["gate", "--json", "--limit", "0", "--suite-root", str(root)])
+    data = json.loads(capsys.readouterr().out)
+    assert data["summary"]["total"] == 0
+    assert data["summary"]["present"] == 0
+    assert code == 1  # nothing gated -> not an all-pass verdict
+
+
+def test_gate_negative_limit_is_a_usage_error(capsys, tmp_path):
+    root = tmp_path / "fleet"
+    root.mkdir()
+    code = main(["gate", "--limit", "-3", "--suite-root", str(root)])
+    err = capsys.readouterr().err
+    assert code == 2
+    assert "limit must be >= 0" in err
+
+
+def test_inventory_human_reports_unexpected_dirs(capsys, tmp_path):
+    root = tmp_path / "fleet"
+    root.mkdir()
+    (root / "goldfinger").mkdir()
+    (root / "not_a_bond_package").mkdir()
+    code = main(["inventory", "--suite-root", str(root)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "unexpected dirs (not in roster): not_a_bond_package" in out
+    assert "present  goldfinger" in out
+
+
+def test_health_human_table_renders_present_package(capsys, tmp_path):
+    """The human health table must actually render a present package row."""
+    root = tmp_path / "fleet"
+    root.mkdir()
+    pkg = make_package(root, "goldfinger")
+    for name in ("README.md", "AGENTS.md", "TODO.md"):
+        (pkg / name).write_text("# doc\n", encoding="utf-8")
+    (pkg / "pyproject.toml").write_text('[project]\nname = "goldfinger"\n', encoding="utf-8")
+    code = main(["health", "--suite-root", str(root)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "goldfinger" in out
+    assert "files=RATP" in out  # every required file present
+    assert "lineage=0" in out
+    assert "MISSING dr_no" in out  # absent roster packages still reported
+
+
+#: A real (tiny) ``herdr`` that also writes to stdout on ``agent`` steps, so the
+#: CLI's "echo the provisioning transcript" branch is exercised for real.
+CHATTY_HERDR = """#!/bin/sh
+if [ "$1" = "status" ]; then exit 0; fi
+if [ "$1" = "workspace" ]; then
+  echo '{"result":{"root_pane":{"pane_id":"PANELABEL"}}}'
+  exit 0
+fi
+echo "herdr-transcript: $*"
+exit 0
+"""
+
+
+def test_roster_execute_prints_subprocess_output(capsys, tmp_path, monkeypatch):
+    """When provisioning emits a transcript, the CLI must print it, not drop it."""
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    (bindir / "herdr").write_text(CHATTY_HERDR, encoding="utf-8")
+    (bindir / "herdr").chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bindir}:{os.environ.get('PATH', '')}")
+
+    root = tmp_path / "fleet"
+    root.mkdir()
+    code = main(["roster", "--execute", "--suite-root", str(root)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "provision exit=0" in out
+    assert "herdr-transcript: agent start bond-utilities" in out
+
+
+def test_commands_constant_matches_parser_subcommands():
+    """COMMANDS feeds a manuscript token — bind it to the real parser."""
+    parser = build_parser()
+    subparsers = [
+        action
+        for action in parser._subparsers._group_actions  # noqa: SLF001 - argparse introspection
+        if isinstance(action, argparse._SubParsersAction)
+    ]
+    assert len(subparsers) == 1
+    assert tuple(subparsers[0].choices) == COMMANDS
+
+
+def test_inventory_human_complete_fleet(capsys, tmp_path):
+    """A fully-populated root prints no missing line and reports complete."""
+    from bond_ops.inventory import slugs
+
+    root = tmp_path / "fleet"
+    root.mkdir()
+    for slug in slugs():
+        (root / slug).mkdir()
+    code = main(["inventory", "--suite-root", str(root)])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "complete True" in out
+    assert "missing:" not in out

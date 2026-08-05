@@ -63,24 +63,68 @@ tools.
 ## Health
 
 ::: {.definition #def:health-verdict title="Health verdict"}
-A package is *healthy* when it is present, ships all required files (README /
-AGENTS / TODO / pyproject), is free of lineage hits, and has a clean git tree.
-Layout probes additionally flag pyproject-name-vs-slug drift and missing
-`tests/` / `src/` directories ([@eq:health-verdict]).
+A package is *healthy* when it is present, ships all **{{REQUIRED_FILE_COUNT}}**
+required files (README / AGENTS / TODO / pyproject), is free of lineage hits,
+and has a clean git tree ([@eq:health-verdict]).
 :::
 
 $$
 H(p) = \mathrm{present}(p) \land \mathrm{files}(p) \land \neg \mathrm{lineage}(p) \land \mathrm{clean}(p)
 $$ {#eq:health-verdict}
 
+Git state is read from `git status --porcelain` and reduced by a pure parser
+(`health.parse_porcelain`) into modified and untracked counts; the clean
+predicate is exactly "both counts are zero". Branch, short SHA, and
+ahead/behind-upstream distances are recorded alongside, with ahead/behind
+reported as *undefined* rather than zero when no upstream is configured — the
+normal case in this local-only suite.
+
+::: {.proposition #prop:probe-additivity title="Probes are additive, not verdict-changing"}
+The layout probes (`health.probe_layout`: `[project] name` equal to the slug,
+`tests/` present, `src/` present) and the toolchain probe
+(`health.tool_versions`) are reported alongside the health verdict but are
+deliberately **not** folded into $H(p)$ of [@eq:health-verdict]. A package
+whose pyproject name has drifted from its slug is a silent fork hazard worth
+surfacing, but folding a new condition into the verdict would retroactively
+change the contract that downstream consumers of `ops health --json` read.
+Diagnostics widen; verdicts do not move.
+:::
+
+## Command surface
+
+::: {.definition #def:ops-surface title="The `ops` surface"}
+`bond_ops.cli` exposes **{{CLI_COMMAND_COUNT}}** subcommands — `inventory`,
+`gate`, `health`, `roster` — each with a human-readable form and a `--json`
+form emitting a versioned manifest. Exit codes: `0` on success, `1` when a
+`gate` verdict fails, `2` on usage error (unknown slug, negative `--limit`).
+Every default is read-only; only `roster --execute` starts anything.
+:::
+
+## Visualization
+
+`bond_ops.figures` renders the manuscript figures headlessly (Agg backend, no
+display) from canonical data and real reports: [@fig:roster-composition] from
+the frozen roster constants, [@fig:fleet-health] from a real health sweep, and
+[@fig:gate-coverage] / [@fig:gate-verdicts] from a real gate report. Colours
+come from a colourblind-safe palette [@wong2011] and the plotting is done with
+Matplotlib [@matplotlib]. Because the inputs are fixed and no wall-clock or
+random draw enters the render path, the PNG bytes are reproducible for a given
+fleet state.
+
 ## Provisioning
 
 ::: {.definition #def:provisioning-roster title="Provisioning roster"}
 The *provisioning roster* maps each package to a herdr provisioning recipe —
-`workspace create` (capturing the root pane id), `agent start` in that pane,
-and a fire-and-forget `agent prompt` when a mission brief file exists.
-Rendering is pure and read-only; execution requires an explicit `--execute`.
+`workspace create` (capturing the root pane id), `agent start` in that pane
+with a `{{AGENT_START_TIMEOUT_MS}}` ms interactivity timeout, and a
+fire-and-forget `agent prompt` when a mission brief file exists. Rendering is
+pure and read-only; execution requires an explicit `--execute`.
 :::
+
+`provision.roster_report` serialises the same roster as a versioned JSON
+manifest — totals by kind and by prompt-brief coverage, then one record per
+package — so fleet composition can be diffed mechanically rather than read out
+of a shell script.
 
 See [@sec:results] for the measured fleet surface and [@sec:setup] for the
 experimental setup.

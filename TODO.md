@@ -1,75 +1,103 @@
 # bond-ops TODO
 
-Forward-only backlog for the fleet-operations package (PROJECT BOND ·
-QUARTERMASTER). No closed-out task archaeology; keep it pointed.
+Remaining work only. Completed phases are not archived here — the code, tests
+and manuscript are the record of what shipped. Anything listed below is either
+unbuilt or unverified; nothing on this list is done.
 
-## Phase-3 scope (this build)
+## Open work
 
-- [x] `src/bond_ops/inventory.py` — canonical 33-slug roster as data; reconcile vs live dirs.
-- [x] `src/bond_ops/gates.py` — one-package-per-subprocess aggregate gate (`pytest --cov --cov-fail-under=90` + ruff + mypy), JSON manifest + human report.
-- [x] `src/bond_ops/health.py` — per-repo git health, required files, lineage sweep.
-- [x] `src/bond_ops/provision.py` — informational herdr provisioning roster (read-only by default).
-- [x] `scripts/ops_gate.py` — thin `ops` CLI (`inventory` / `gate [--json]` / `health` / `roster`).
-- [x] Deterministic test suite (real subprocess, tmp fake packages) at ≥90% coverage.
+### 1. Consume a shared suite registry from `bond-coordinator`
 
-## Phase-4 deepening (this build)
+`src/bond_ops/inventory.py` carries the 33-slug roster as local data, which
+means the roster and `bond-coordinator`'s registry can drift apart silently.
+When the coordinator exposes a machine-readable registry (JSON / YAML / entry
+point), reconcile against it and treat a mismatch as fleet drift rather than
+picking a winner.
 
-- [x] `gates.py` — coverage parses the pytest-cov `... not reached. Total coverage: X%`
-  failure line as a fallback to the `TOTAL` table; `coverage_stats()` helper and
-  `coverage_values`/`failed_slugs` on the report; optional per-subprocess `env`
-  passthrough (`run_command`/`gate_one`/`run_aggregate_gate`) so a nested gate
-  can target a sibling's own project environment.
-- [x] `health.py` — `probe_layout()` (pyproject-name-vs-slug drift, `tests/` and
-  `src/` presence) with `HealthReport.layout_ok`; `tool_versions()` toolchain
-  probe (git/uv/python). `healthy` verdict contract unchanged (probes are
-  diagnostic, not folded in).
-- [x] `provision.py` — `roster_report()` deterministic machine-readable roster
-  manifest (kind + prompt-brief counts); `ops roster --json`.
-- [x] `cli.py` — `ops roster --json`; `ops health --json` exposes per-package
-  `probes` and `layout_ok`.
-- [x] Real-fleet test module (`tests/test_real_fleet.py`) — the gate runner gates
-  `bond-ops` itself through the venv interpreter (real pytest-coverage/ruff/mypy,
-  `--ignore=tests/test_real_fleet.py` to avoid recursion); health + layout +
-  toolchain probes run against real live siblings. 0 mocks, 0 skips.
+*Acceptance:* `ops inventory` still reports 33 present against the live fleet;
+the coordinator registry is the single source of truth; a deliberately
+mismatched registry produces a non-zero verdict in a test.
 
-## Phase-5 manuscript + visualizations (this build)
+*Constraint:* bind through data, not a hard import — `src/bond_ops/` must keep
+importing nothing from sibling packages.
 
-- [x] `src/bond_ops/figures.py` — deterministic headless-Agg generators:
-  `plot_roster_composition` (frozen roster data), `plot_fleet_health` (real
-  sweep over all 33), `plot_gate_coverage` (floor line) and `plot_gate_verdicts`
-  (pytest/ruff/mypy/passed heatmap). Byte-identical for fixed inputs.
-- [x] `scripts/z_generate_figures.py` — thin wrapper rendering the four figures
-  into `output/figures/` (gate figures come from a real self-gate).
-- [x] Manuscript deepened with **auto-numbered formalisms**: `{#sec:}` section
-  labels, `::: {.definition/#prop}` blocks, `{#eq:}` equations, `{#fig:}`
-  figures with self-contained captions, `{#tbl:}` tables, `[@key]` citations;
-  preamble LaTeX block; SYNTAX.md formalism registry.
-- [x] `tests/test_figures.py` (PNG magic + byte-determinism) and
-  `tests/test_manuscript_formalisms.py` (every declared formalism referenced,
-  every reference resolves, every citation key in `references.bib`).
+### 2. `--require-complete` for the aggregate gate
 
-## Integration points (bind when the sibling lands)
+`AggregateGateReport.all_pass` is true when every *present* package passes;
+packages missing from disk are counted but do not fail the verdict. That is the
+right default (gate what is here), but it means a half-checked-out fleet can
+exit `0`. Add an opt-in `--require-complete` that folds `missing_count == 0`
+into the exit code.
 
-- **Consume a shared suite registry (bond-coordinator).** Today `inventory.py`
-  carries the 33-slug roster as data. When `bond-coordinator` exposes a
-  machine-readable registry (JSON/YAML/entry-point), reconcile
-  `inventory.reconcile` against it and treat mismatches as fleet drift.
-  Acceptance: `ops inventory` still shows 33 present with the live fleet, and
-  the registry is the single source of truth.
+*Acceptance:* default behaviour byte-identical to today; with the flag, a root
+missing any roster slug exits `1` and says which slugs.
 
-## Provisioning state
+*Constraint:* do not change `all_pass` itself — it is a published manifest
+field.
 
-`provision.py` renders the herdr provisioning roster per the
-`herdr-multiple-hermes-dispatch` skill: `workspace create --label --cwd
---no-focus`, `agent start --kind hermes --timeout 90000`, then a fire-and-forget
-`agent prompt` when a prompt file exists. Rendering is pure; `ops roster` prints
-it read-only and `ops roster --execute` runs it via a real `bash` subprocess
-(covered by tests with a fake `herdr` on PATH).
+### 3. Write the gate manifest from the CLI
 
-## Quality gates (current evidence)
+`gates.write_manifest()` exists and is tested, but `ops gate --json` only
+prints to stdout, so CI-style use needs a shell redirect. Add
+`ops gate --out PATH` routing through `write_manifest`.
 
-- Tests + coverage: `uv run pytest tests/ --cov=src --cov-fail-under=90`.
-  Live count + coverage % are tracked in `docs/_generated/COUNTS.md`.
-- Lint/type: `uv run ruff check src/ scripts/ tests/` and
-  `uv run mypy src/ scripts/` must pass clean.
-- Lineage: zero `template[_]code_project` hits outside allowed docs.
+*Acceptance:* `--out` writes the same bytes `--json` prints, plus a trailing
+newline; the parent directory is created; a test round-trips through
+`parse_manifest`.
+
+### 4. Verify the claimed Python 3.10 floor
+
+`pyproject.toml` declares `requires-python = ">=3.10"` and `health.py` hand-rolls
+a `[project] name` parser specifically to avoid `tomllib` (3.11+). Nothing has
+ever executed this package on 3.10 — the local venv is 3.14 and mypy is pinned
+to `python_version = "3.12"`. Either run the suite under a real 3.10
+interpreter or raise the declared floor to what is actually tested.
+
+*Acceptance:* the gate passes under the lowest interpreter the metadata claims,
+or the metadata is corrected to match reality.
+
+### 5. Cross-environment figure determinism
+
+`tests/test_figures.py` asserts byte-identical PNGs across two renders *in the
+same process and environment*. Matplotlib version, font availability and
+platform can all move the bytes; the current test cannot see that. Either pin
+what determinism actually holds across environments, or narrow the claim in
+`docs/testing_philosophy.md` and the manuscript to same-environment
+determinism.
+
+*Acceptance:* the documented claim and the enforced claim are the same claim.
+
+### 6. Render the manuscript end-to-end
+
+The manuscript declares auto-numbered formalisms, cross-references and figures,
+and the cross-reference test proves every label resolves *textually*. No PDF
+has been rendered from this package, so the pandoc-crossref + `formalism.lua`
+path is unverified here. Render once through the template pipeline and check
+that no `??` reference survives.
+
+*Acceptance:* a rendered PDF with zero unresolved references, and the figure
+files actually embedded.
+
+## Standing decisions (not work items)
+
+Recorded so they are not "fixed" by a later pass that mistakes them for gaps:
+
+- **No `mission.py`, no `MissionProvider`, no `GADGETS`.** The gate runner must
+  not be a member of the population it grades. See `docs/architecture.md`.
+- **`layout_ok` is not folded into `healthy`.** Probes are additive
+  diagnostics; the verdict is a published contract.
+- **Gate manifests carry no timestamp.** That absence is what makes the
+  determinism assertion meaningful.
+- **Measured numbers are never manuscript tokens.** Coverage and test counts
+  are runtime diagnostics recorded in `docs/_generated/COUNTS.md`.
+
+## Quality gates (how to check, not what the numbers are)
+
+```bash
+uv run pytest tests/ --cov=src --cov-fail-under=90
+uv run ruff check src/ scripts/ tests/ && uv run ruff format --check src/ scripts/ tests/
+uv run mypy src/ scripts/
+rg -n "template[_]code_project" . --glob '!uv.lock' --glob '!.git/**' || echo clean
+```
+
+Live measured counts: [`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md).

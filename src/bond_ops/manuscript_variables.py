@@ -2,9 +2,14 @@
 
 Builds the ``{{TOKEN}}`` substitution map referenced by the manuscript prose.
 Identity tokens (package name, codename) come from ``manuscript/config.yaml``;
-roster-derived tokens come from the deterministic suite constants in
-``inventory.py``. No metrics are hard-authored — fleet gate results are
-runtime diagnostics, not manuscript tokens.
+every other token is *derived from a live code constant* — roster sizes from
+``inventory``, the coverage floor / gate timeout / manifest name from
+``gates``, the required-file count from ``health``, the subcommand count from
+``cli``, and the agent-start timeout from ``provision``. Nothing in the
+manuscript's quantitative prose is typed by hand, so changing a constant moves
+the manuscript with it. No *measured* metric (coverage %, test count) is a
+token: fleet gate results are runtime diagnostics, reported by ``ops gate``
+and recorded in ``docs/_generated/COUNTS.md``, never frozen into prose.
 
 The output JSON is written under ``output/variables/manuscript_variables.json``
 so a static cross-reference test can verify that every ``{{TOKEN}}`` appearing
@@ -19,7 +24,9 @@ from typing import cast
 
 import yaml
 
-from .gates import COVERAGE_FLOOR, GATE_MANIFEST_NAME
+from .cli import COMMANDS
+from .gates import COVERAGE_FLOOR, DEFAULT_TIMEOUT, GATE_MANIFEST_NAME
+from .health import REQUIRED_FILES
 from .inventory import (
     BOND_OPS_CODENAME,
     FILM_COUNT,
@@ -27,6 +34,7 @@ from .inventory import (
     SUITE_NAME,
     SUITE_SIZE,
 )
+from .provision import AGENT_START_TIMEOUT_MS
 
 #: Defaults used when ``manuscript/config.yaml`` is absent (tests, drafts).
 _DEFAULT_IDENTITY = {
@@ -44,7 +52,10 @@ def read_identity(project_root: str | Path) -> dict[str, str]:
 
     try:
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    except (OSError, yaml.YAMLError):  # pragma: no cover - unreadable/malformed
+    except (OSError, yaml.YAMLError):
+        # Malformed or unreadable config: fall back to the built-in identity
+        # rather than crash the token build. Covered by an explicit test so
+        # this recovery path can never rot into a silent failure.
         return dict(_DEFAULT_IDENTITY)
 
     if not isinstance(raw, dict):
@@ -71,6 +82,10 @@ def build_tokens(project_root: str | Path) -> dict[str, str]:
         "INFRA_COUNT": str(INFRA_COUNT),
         "GATE_MANIFEST": GATE_MANIFEST_NAME,
         "COVERAGE_FLOOR": str(COVERAGE_FLOOR),
+        "CLI_COMMAND_COUNT": str(len(COMMANDS)),
+        "REQUIRED_FILE_COUNT": str(len(REQUIRED_FILES)),
+        "GATE_TIMEOUT_S": str(DEFAULT_TIMEOUT),
+        "AGENT_START_TIMEOUT_MS": str(AGENT_START_TIMEOUT_MS),
     }
 
 
@@ -101,7 +116,9 @@ def load_generated(project_root: str | Path) -> dict[str, str]:
         return {}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):  # pragma: no cover - corrupt file
+    except (OSError, json.JSONDecodeError):
+        # A corrupt token file reads as "nothing generated yet"; the generator
+        # rewrites it. Covered by an explicit test.
         return {}
     payload = cast("dict[str, object]", data)
     return {str(k): str(v) for k, v in payload.items() if isinstance(v, (str, int, float))}

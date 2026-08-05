@@ -1,6 +1,7 @@
 # Results {#sec:results}
 
-The fleet surface produced by {{PACKAGE_NAME}} (codename {{CODENAME}}), all
+The fleet surface produced by {{PACKAGE_NAME}} (codename {{CODENAME}}) is the
+**{{CLI_COMMAND_COUNT}}**-subcommand `ops` surface of [@def:ops-surface], all
 measured from real subprocess and filesystem state:
 
 - **Inventory.** `ops inventory` reconciles the canonical roster
@@ -17,7 +18,8 @@ measured from real subprocess and filesystem state:
 - **Fleet health.** `ops health` reports per-repo clean/dirty, branch,
   ahead/behind, required-file coverage, lineage hits, layout probes, and the
   overall verdict ([@def:health-verdict]); `--json` exposes `probes` and
-  `layout_ok` per package. [@fig:fleet-health] shows a real sweep over the
+  `layout_ok` per package as diagnostics that never move the verdict
+  ([@prop:probe-additivity]). [@fig:fleet-health] shows a real sweep over the
   whole fleet.
 - **Provisioning roster.** `ops roster` prints the herdr provisioning script;
   `ops roster --json` emits a machine-readable roster report

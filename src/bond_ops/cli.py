@@ -40,6 +40,7 @@ from .inventory import (
     BOND_OPS_CODENAME,
     DEFAULT_SUITE_ROOT,
     SUITE_NAME,
+    SUITE_SIZE,
     is_known_slug,
     reconcile,
 )
@@ -70,7 +71,7 @@ def _cmd_inventory(args: argparse.Namespace) -> int:
                 "schema_version": 1,
                 "suite_root": str(root),
                 "summary": {
-                    "total": 33,
+                    "total": SUITE_SIZE,
                     "present": report.present_count,
                     "missing": report.missing_count,
                     "unexpected": len(report.unexpected),
@@ -85,7 +86,8 @@ def _cmd_inventory(args: argparse.Namespace) -> int:
 
     print(f"{SUITE_NAME} inventory ({BOND_OPS_CODENAME}) — {root}")
     print(
-        f"present {report.present_count}/33 · missing {report.missing_count} · complete {report.complete}"
+        f"present {report.present_count}/{SUITE_SIZE} · missing {report.missing_count} "
+        f"· complete {report.complete}"
     )
     if report.missing:
         print("missing: " + ", ".join(report.missing))
@@ -113,17 +115,21 @@ def _cmd_gate(args: argparse.Namespace) -> int:
     except argparse.ArgumentTypeError as exc:
         print(f"ops: error: {exc}", file=sys.stderr)
         return 2
-    report = run_aggregate_gate(
-        suite_root=root,
-        only_slugs=only,
-        limit=args.limit,
-        run_ruff=not args.no_ruff,
-        run_mypy=not args.no_mypy,
-        timeout=args.timeout,
-        pytest_cmd=tuple(args.pytest_cmd) if args.pytest_cmd else DEFAULT_PYTEST_CMD,
-        ruff_cmd=tuple(args.ruff_cmd) if args.ruff_cmd else DEFAULT_RUFF_CMD,
-        mypy_cmd=tuple(args.mypy_cmd) if args.mypy_cmd else DEFAULT_MYPY_CMD,
-    )
+    try:
+        report = run_aggregate_gate(
+            suite_root=root,
+            only_slugs=only,
+            limit=args.limit,
+            run_ruff=not args.no_ruff,
+            run_mypy=not args.no_mypy,
+            timeout=args.timeout,
+            pytest_cmd=tuple(args.pytest_cmd) if args.pytest_cmd else DEFAULT_PYTEST_CMD,
+            ruff_cmd=tuple(args.ruff_cmd) if args.ruff_cmd else DEFAULT_RUFF_CMD,
+            mypy_cmd=tuple(args.mypy_cmd) if args.mypy_cmd else DEFAULT_MYPY_CMD,
+        )
+    except ValueError as exc:  # negative --limit
+        print(f"ops: error: {exc}", file=sys.stderr)
+        return 2
     if args.json:
         print(manifest_to_json(report))
     else:
@@ -192,7 +198,7 @@ def _cmd_health(args: argparse.Namespace) -> int:
         )
         lineage = len(r.lineage_hits)
         verdict = "OK" if r.healthy else "BAD"
-        print(f"  {verdict} {r.slug:<30} repo={clean_s:<6} files={files} lineage={lineage}")
+        print(f"  {verdict:<3} {r.slug:<30} repo={clean_s:<6} files={files} lineage={lineage}")
     return 0
 
 
@@ -212,6 +218,12 @@ def _cmd_roster(args: argparse.Namespace) -> int:
         return 0
     print(format_provision(suite_root=root, prompt_dir=prompt_dir))
     return 0
+
+
+#: Subcommand names exposed by the ``ops`` parser, in help order. Single
+#: source of truth for both :func:`main`'s dispatch table and the
+#: ``CLI_COMMAND_COUNT`` manuscript token.
+COMMANDS: tuple[str, ...] = ("inventory", "gate", "health", "roster")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -236,7 +248,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--only", default=None, help="comma/space-separated slugs to gate (others skipped)"
     )
     gate.add_argument(
-        "--limit", type=int, default=None, help="gate only the first N roster packages"
+        "--limit",
+        type=int,
+        default=None,
+        help="gate only the first N selected packages (N>=0; 0 gates nothing)",
     )
     gate.add_argument(
         "--timeout", type=int, default=DEFAULT_TIMEOUT, help="per-command timeout (s)"
@@ -265,13 +280,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    handler = {
+    handlers = {
         "inventory": _cmd_inventory,
         "gate": _cmd_gate,
         "health": _cmd_health,
         "roster": _cmd_roster,
-    }[args.command]
-    return handler(args)
+    }
+    return handlers[args.command](args)
 
 
 if __name__ == "__main__":  # pragma: no cover

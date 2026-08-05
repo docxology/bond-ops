@@ -2,38 +2,58 @@
   title        = {BOND-OPS: Fleet Health, Aggregate Gates, and Provisioning for PROJECT BOND},
   author       = {Friedman, Daniel Ari},
   year         = {2026},
-  note         = {PROJECT BOND suite, Layer 4 (codename QUARTERMASTER), local-only working tree},
-  howpublished = {https://github.com/activeinference/institute (internal, unpublished)}
+  note         = {PROJECT BOND suite, Layer 4 (codename QUARTERMASTER). Local-only working tree with no remote; unpublished software record}
 }
 
 @misc{pytest,
   title        = {pytest: helps you write better programs},
-  author       = {Krekel, Holger and Oliveira, Bruno and others},
-  year         = {2026},
-  howpublished = {https://docs.pytest.org},
-  note         = {test framework used by every fleet package gate}
+  author       = {Krekel, Holger and Oliveira, Bruno and Pfannschmidt, Ronny and Bruynooghe, Floris and Laugher, Brianna and Bruhin, Florian},
+  howpublished = {\url{https://docs.pytest.org}},
+  note         = {Software; version pinned by this package's uv.lock. Test framework used by every fleet package gate}
 }
 
 @misc{coveragepy,
   title        = {Coverage.py},
-  author       = {Ned Batchelder and contributors},
-  year         = {2026},
-  howpublished = {https://coverage.readthedocs.io},
-  note         = {line+branch coverage measurement enforced at the gate floor}
+  author       = {Batchelder, Ned and {contributors}},
+  howpublished = {\url{https://coverage.readthedocs.io}},
+  note         = {Software; version pinned by this package's uv.lock. Line and branch coverage measurement enforced at the gate floor}
 }
 
 @misc{ruff,
   title        = {Ruff: An extremely fast Python linter and code formatter},
-  author       = {Charlie Marsh and Astral contributors},
-  year         = {2026},
-  howpublished = {https://docs.astral.sh/ruff},
-  note         = {lint and format checks run per package in the aggregate gate}
+  author       = {Marsh, Charlie and {Astral Software Inc.}},
+  howpublished = {\url{https://docs.astral.sh/ruff}},
+  note         = {Software; version pinned by this package's uv.lock. Lint and format checks run per package in the aggregate gate}
 }
 
 @misc{mypy,
   title        = {mypy: Optional Static Typing for Python},
-  author       = {Jukka Lehtosalo and contributors},
-  year         = {2026},
-  howpublished = {https://mypy.readthedocs.io},
-  note         = {static type check run per package in the aggregate gate}
+  author       = {Lehtosalo, Jukka and {contributors}},
+  howpublished = {\url{https://mypy.readthedocs.io}},
+  note         = {Software; version pinned by this package's uv.lock. Static type check run per package in the aggregate gate}
+}
+
+@article{matplotlib,
+  title     = {Matplotlib: A 2D Graphics Environment},
+  author    = {Hunter, John D.},
+  journal   = {Computing in Science \& Engineering},
+  volume    = {9},
+  number    = {3},
+  pages     = {90--95},
+  year      = {2007},
+  publisher = {IEEE Computer Society},
+  doi       = {10.1109/MCSE.2007.55},
+  note      = {plotting library used by the deterministic Agg figure renderers}
+}
+
+@article{wong2011,
+  title   = {Points of view: Color blindness},
+  author  = {Wong, Bang},
+  journal = {Nature Methods},
+  volume  = {8},
+  number  = {6},
+  pages   = {441},
+  year    = {2011},
+  doi     = {10.1038/nmeth.1618},
+  note    = {source of the colourblind-safe palette used by the figures}
 }

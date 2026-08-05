@@ -5,11 +5,23 @@
 {{PACKAGE_NAME}} covers fleet *operations* only: knowing the
 {{SUITE_SIZE}}-package roster ([@def:suite-roster]), gating each package
 ([@def:aggregate-gate]), inspecting health ([@def:health-verdict]), and
-rendering provisioning ([@def:provisioning-roster]). It does **not** implement
-the `MissionProvider` protocol (that is `bond-api`), does **not** dispatch
-multi-package missions (that is `bond-orchestrator`), and does **not** provide
+rendering provisioning ([@def:provisioning-roster]). It does **not** dispatch
+multi-package missions (that is `bond-orchestrator`) and does **not** provide
 the user-facing front door (that is `bond-cli`). Its gate runs each package's
 *own* tests; it never executes another package's mission logic.
+
+Crucially, {{PACKAGE_NAME}} ships **no `mission.py` and no `MissionProvider`
+implementation**, and this is a design decision rather than an omission. The
+`MissionProvider` protocol is *defined* by `bond-api` and *implemented* by the
+{{FILM_COUNT}} film packages, each of which answers `brief` / `recon` / `plan`
+/ `execute` / `debrief` for its own film. A mission provider is a thing the
+fleet *runs*; the QUARTERMASTER is the thing that *measures whether the fleet
+can be run at all*. Making the gate runner itself a mission provider would put
+the measuring instrument inside the population it measures — the aggregate
+gate would then have to gate itself as a peer, and a provider failure would be
+indistinguishable from a gate failure. `bond-ops` therefore imports nothing
+from `bond-api` and treats every package, film or infrastructure, purely as a
+directory with tests, a git tree, and a layout to probe.
 
 ## Related work within the fleet
 

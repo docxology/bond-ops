@@ -67,3 +67,44 @@ def test_all_manuscript_tokens_generated():
         text = md.read_text(encoding="utf-8")
         for tok in re.findall(r"\{\{([A-Z_][A-Z0-9_]*)\}\}", text):
             assert tok in tokens, f"{md.name}: unresolved token {{{{tok}}}}"
+
+
+def test_read_identity_malformed_yaml_falls_back(tmp_path):
+    """A malformed config must degrade to the built-in identity, not crash."""
+    cfg = tmp_path / "manuscript"
+    cfg.mkdir()
+    (cfg / "config.yaml").write_text("package: [unclosed\n", encoding="utf-8")
+    ident = mv.read_identity(tmp_path)
+    assert ident["package_name"] == "bond-ops"
+    assert ident["codename"] == "QUARTERMASTER"
+
+
+def test_load_generated_corrupt_file_reads_as_empty(tmp_path):
+    path = tmp_path / "output" / "variables" / "manuscript_variables.json"
+    path.parent.mkdir(parents=True)
+    path.write_text("{not json", encoding="utf-8")
+    assert mv.load_generated(tmp_path) == {}
+
+
+def test_derived_tokens_track_code_constants():
+    """Every non-identity token is derived from a live constant, not typed in."""
+    from bond_ops import gates, health, provision
+    from bond_ops.cli import COMMANDS
+
+    tokens = mv.build_tokens(PROJECT_ROOT)
+    assert tokens["COVERAGE_FLOOR"] == str(gates.COVERAGE_FLOOR)
+    assert tokens["GATE_MANIFEST"] == gates.GATE_MANIFEST_NAME
+    assert tokens["GATE_TIMEOUT_S"] == str(gates.DEFAULT_TIMEOUT)
+    assert tokens["CLI_COMMAND_COUNT"] == str(len(COMMANDS))
+    assert tokens["REQUIRED_FILE_COUNT"] == str(len(health.REQUIRED_FILES))
+    assert tokens["AGENT_START_TIMEOUT_MS"] == str(provision.AGENT_START_TIMEOUT_MS)
+
+
+def test_config_token_list_matches_generated_map():
+    """manuscript/config.yaml's declared token list must match build_tokens()."""
+    import yaml
+
+    config = yaml.safe_load(
+        (PROJECT_ROOT / "manuscript" / "config.yaml").read_text(encoding="utf-8")
+    )
+    assert sorted(config["tokens"]) == sorted(mv.build_tokens(PROJECT_ROOT))

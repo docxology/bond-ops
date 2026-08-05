@@ -9,14 +9,24 @@ by `src/bond_ops/manuscript_variables.py` via
 
 | Token | Source |
 |---|---|
-| `{{SUITE_NAME}}` | inventory constant (`PROJECT BOND`) |
+| `{{SUITE_NAME}}` | `inventory.SUITE_NAME` |
 | `{{PACKAGE_NAME}}` | manuscript `config.yaml` → `package.name` |
 | `{{CODENAME}}` | manuscript `config.yaml` → `package.codename` |
-| `{{SUITE_SIZE}}` | inventory constant (33) |
-| `{{FILM_COUNT}}` | inventory constant (27) |
-| `{{INFRA_COUNT}}` | inventory constant (6) |
-| `{{GATE_MANIFEST}}` | `gates.GATE_MANIFEST_NAME` (`bond-ops-gate`) |
-| `{{COVERAGE_FLOOR}}` | `gates.COVERAGE_FLOOR` (90) |
+| `{{SUITE_SIZE}}` | `inventory.SUITE_SIZE` |
+| `{{FILM_COUNT}}` | `inventory.FILM_COUNT` |
+| `{{INFRA_COUNT}}` | `inventory.INFRA_COUNT` |
+| `{{GATE_MANIFEST}}` | `gates.GATE_MANIFEST_NAME` |
+| `{{COVERAGE_FLOOR}}` | `gates.COVERAGE_FLOOR` |
+| `{{GATE_TIMEOUT_S}}` | `gates.DEFAULT_TIMEOUT` |
+| `{{CLI_COMMAND_COUNT}}` | `len(cli.COMMANDS)` |
+| `{{REQUIRED_FILE_COUNT}}` | `len(health.REQUIRED_FILES)` |
+| `{{AGENT_START_TIMEOUT_MS}}` | `provision.AGENT_START_TIMEOUT_MS` |
+
+Every value above is read from a live constant at generation time, so the
+table above names the *source*, not the number. `manuscript/config.yaml`
+carries the same token list and `tests/test_manuscript_variables.py` asserts
+the two sets are identical, so adding a token to one without the other fails
+the suite.
 
 ## Auto-numbered formalisms
 
@@ -40,7 +50,9 @@ referenced and every reference resolves.
 | `def:aggregate-gate` | definition | 02_methodology |
 | `def:health-verdict` | definition | 02_methodology |
 | `def:provisioning-roster` | definition | 02_methodology |
+| `def:ops-surface` | definition | 02_methodology |
 | `prop:isolation` | proposition | 02_methodology |
+| `prop:probe-additivity` | proposition | 02_methodology |
 | `prop:manifest-determinism` | proposition | 06_reproducibility |
 
 ### Equations (`$$ ... $$ {#eq:...}`)
@@ -74,4 +86,5 @@ literal relative paths, never `{{TOKEN}}` placeholders.
 
 ## Citation keys (resolve in `references.bib`)
 
-`bond_ops` · `pytest` · `coveragepy` · `ruff` · `mypy`
+`bond_ops` · `pytest` · `coveragepy` · `ruff` · `mypy` · `matplotlib` ·
+`wong2011`

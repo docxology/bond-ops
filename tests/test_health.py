@@ -209,3 +209,27 @@ def test_health_report_probes_default():
     rep = h.HealthReport(slug="x", present=True, git=None, files={"a": True})
     assert rep.probes == {}
     assert rep.layout_ok is False
+
+
+def test_lineage_sweep_on_absent_directory(tmp_path):
+    """An absent package sweeps clean rather than raising."""
+    assert h.lineage_sweep(tmp_path / "does-not-exist") == []
+
+
+def test_binary_version_missing_binary():
+    assert h._binary_version("definitely-not-a-real-binary-zzz") is None
+
+
+def test_read_project_name_skips_non_name_lines():
+    text = '[build-system]\nrequires = ["setuptools"]\n\n[project]\ndynamic = ["version"]\nname = "goldfinger"\n'
+    assert h._read_project_name(text) == "goldfinger"
+
+
+def test_read_project_name_absent():
+    assert h._read_project_name('[project]\ndescription = "x"\n') is None
+
+
+def test_parse_porcelain_counts_and_ignores_blank_lines():
+    status = " M src/a.py\n?? new.txt\nA  staged.py\n\n"
+    assert h.parse_porcelain(status) == (2, 1)
+    assert h.parse_porcelain("") == (0, 0)

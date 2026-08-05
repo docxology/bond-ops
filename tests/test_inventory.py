@@ -109,3 +109,11 @@ def test_live_suite_root_complete():
     report = inv.reconcile(inv.DEFAULT_SUITE_ROOT)
     assert report.complete is True
     assert report.present_count == 33
+
+
+def test_roster_accessor_matches_constants():
+    records = inv.roster()
+    assert records is inv.ROSTER
+    assert len(records) == inv.SUITE_SIZE
+    assert sum(1 for r in records if r.kind == "infra") == inv.INFRA_COUNT
+    assert sum(1 for r in records if r.kind == "film") == inv.FILM_COUNT

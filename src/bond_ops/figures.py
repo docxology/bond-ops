@@ -4,8 +4,8 @@ The QUARTERMASTER renders four canonical figures:
 
 - ``roster_composition`` — infrastructure vs film packages, from the frozen
   roster constants (no subprocess);
-- ``fleet_health`` — the real per-package health sweep over all {{SUITE_SIZE}}
-  roster packages (git + files + lineage + layout probes);
+- ``fleet_health`` — the real per-package health sweep over every roster
+  package (git + files + lineage + layout probes);
 - ``gate_coverage`` / ``gate_verdicts`` — a real gate report's measured
   coverage bars and per-check verdict heatmap.
 
@@ -64,8 +64,8 @@ def _text_only(target: Path, message: str) -> Path:
 def plot_roster_composition(path: str | Path | None = None) -> Path:
     """Render the infrastructure-vs-films roster composition bar chart.
 
-    Data comes from the frozen ``inventory`` constants ({{INFRA_COUNT}} +
-    {{FILM_COUNT}} = {{SUITE_SIZE}}); fully deterministic.
+    Data comes from the frozen ``inventory`` constants
+    (``INFRA_COUNT + FILM_COUNT == SUITE_SIZE``); fully deterministic.
     """
     target = _prepare(path or (DEFAULT_FIGURE_DIR / ROSTER_COMPOSITION))
     figure, axis = plt.subplots(figsize=(5.6, 3.0))

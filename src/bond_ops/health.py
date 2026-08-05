@@ -40,6 +40,23 @@ def _git(args: list[str], cwd: str | Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def parse_porcelain(status: str) -> tuple[int, int]:
+    """Count ``(modified, untracked)`` entries in ``git status --porcelain`` text.
+
+    Pure and separately testable: lines starting ``??`` are untracked, any
+    other non-blank line is a modification (staged or unstaged). Blank lines
+    are ignored so a trailing newline never inflates the modified count.
+    """
+    modified = 0
+    untracked = 0
+    for line in status.splitlines():
+        if line.startswith("??"):
+            untracked += 1
+        elif line.strip():
+            modified += 1
+    return modified, untracked
+
+
 @dataclass(frozen=True)
 class GitHealth:
     """Git state of a repository."""
@@ -74,13 +91,7 @@ def git_health(repo_dir: str | Path) -> GitHealth:
     sha = _git(["rev-parse", "--short", "HEAD"], cwd=root).stdout.strip() or None
 
     status = _git(["status", "--porcelain"], cwd=root).stdout
-    modified = 0
-    untracked = 0
-    for line in status.splitlines():
-        if line.startswith("??"):
-            untracked += 1
-        elif line.strip():
-            modified += 1
+    modified, untracked = parse_porcelain(status)
     clean = modified == 0 and untracked == 0
 
     ahead_probe = _git(["rev-list", "--count", "@{upstream}..HEAD"], cwd=root)

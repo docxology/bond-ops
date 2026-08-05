@@ -92,7 +92,9 @@ def parse_coverage(output: str) -> float | None:
        — some configurations omit the table on failure.
 
     Returns ``None`` when neither layout is present (e.g. the subprocess
-    crashed before coverage was measured).
+    crashed before coverage was measured). A malformed ``TOTAL`` percentage
+    does **not** short-circuit the parse: the failure-line fallback is still
+    tried, so a truncated table cannot mask a reported coverage value.
     """
     for line in output.splitlines():
         if line.lstrip().startswith("TOTAL"):
@@ -101,7 +103,7 @@ def parse_coverage(output: str) -> float | None:
                     try:
                         return float(token.rstrip("%"))
                     except ValueError:
-                        return None
+                        break  # malformed table -> fall through to the failure line
     return parse_coverage_failure(output)
 
 
@@ -212,7 +214,7 @@ def gate_one(
             passed=passed,
             error=pytest_cr.output[-800:] if not pytest_cr.passed else None,
         )
-    except (subprocess.TimeoutExpired, OSError) as exc:  # pragma: no cover - os error path
+    except (subprocess.TimeoutExpired, OSError) as exc:
         return PackageGateResult(
             slug=slug,
             present=True,
@@ -321,7 +323,12 @@ def run_aggregate_gate(
 
     ``only_slugs`` restricts the run to the named roster slugs (canonical order
     is preserved); ``limit`` gates at most the first ``N`` selected packages
-    (useful for fast smoke runs). Both are deterministic filters only.
+    (useful for fast smoke runs), and ``limit=0`` therefore gates *nothing*
+    rather than silently gating the whole fleet. Both are deterministic filters
+    only.
+
+    Raises:
+        ValueError: when ``limit`` is negative.
     """
     root = Path(suite_root) if suite_root is not None else DEFAULT_SUITE_ROOT
 
@@ -329,7 +336,9 @@ def run_aggregate_gate(
     if only_slugs:
         wanted = set(only_slugs)
         selected = tuple(rec for rec in selected if rec.slug in wanted)
-    if limit is not None and limit > 0:
+    if limit is not None:
+        if limit < 0:
+            raise ValueError(f"limit must be >= 0, got {limit}")
         selected = selected[:limit]
 
     results = [

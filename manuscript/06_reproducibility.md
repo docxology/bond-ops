@@ -21,5 +21,14 @@ for an unchanged fleet they are byte-identical across runs.
   shape, roster order, provisioning script text, and figure bytes; a
   redundant live run of `ops gate --json` on an unchanged suite is asserted
   byte-identical across two invocations.
+- **Recovery paths are tested, not assumed.** The three places where
+  {{PACKAGE_NAME}} degrades instead of raising — a malformed
+  `manuscript/config.yaml`, a corrupt generated token file, and a gate
+  subprocess that times out or cannot be launched — each carry a test that
+  drives the real failure and asserts the fallback, so a silent-failure path
+  cannot rot unobserved behind a coverage exclusion.
+- **Filters cannot silently widen.** `--limit 0` gates nothing and a negative
+  limit is a usage error, so a mistyped bound can never expand into a
+  full-fleet run.
 - **No untracked randomness.** No `random` draws; nothing depends on
   wall-clock ordering.

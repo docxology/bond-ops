@@ -6,9 +6,20 @@ package:
 
 meta:
   title: "BOND-OPS: Fleet Health, Aggregate Gates, and Provisioning for PROJECT BOND"
+  subtitle: "Layer-4 QUARTERMASTER — roster reconciliation, one-package-per-subprocess quality gates, repo health probes, and read-only herdr provisioning"
   identity: BOND-OPS
   layer: 4
   suite: PROJECT BOND
+
+keywords:
+  - fleet operations
+  - quality gates
+  - test coverage enforcement
+  - subprocess isolation
+  - repository health
+  - lineage drift detection
+  - provisioning
+  - reproducible tooling
 
 tokens:
   - SUITE_NAME
@@ -19,3 +30,7 @@ tokens:
   - INFRA_COUNT
   - GATE_MANIFEST
   - COVERAGE_FLOOR
+  - CLI_COMMAND_COUNT
+  - REQUIRED_FILE_COUNT
+  - GATE_TIMEOUT_S
+  - AGENT_START_TIMEOUT_MS

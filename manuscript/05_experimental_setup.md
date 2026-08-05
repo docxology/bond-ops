@@ -4,7 +4,9 @@
   `matplotlib` (figures only). No `infrastructure.*` and no sibling BOND
   import.
 - **Gate command** invoked per package (one subprocess each): `uv run pytest
-  tests/ --cov=src --cov-fail-under={{COVERAGE_FLOOR}}`.
+  tests/ --cov=src --cov-fail-under={{COVERAGE_FLOOR}}`, killed after
+  {{GATE_TIMEOUT_S}} s so a hung package cannot stall the sweep (the timeout is
+  recorded as a gate failure with its exception text, never as a pass).
 - **Fleet root**: `{{SUITE_NAME}}` at `projects/working/bond/`,
   {{SUITE_SIZE}} packages ({{INFRA_COUNT}} infra, {{FILM_COUNT}} films).
 - **Isolation contract**: each gate subprocess runs with `cwd` equal to the
@@ -26,7 +28,7 @@ The toolchain is pinned via `uv.lock` ([@tbl:toolchain]).
 
 The package's own test suite exercises the real subprocess machinery against
 deterministic tmp-path fake packages (and a fake `uv`/`herdr` on `PATH`), with
-zero mocks, and must hold ≥90% line+branch coverage on `src/` (enforced by
+zero mocks, and must hold ≥{{COVERAGE_FLOOR}}% line+branch coverage on `src/` (enforced by
 `--cov-fail-under={{COVERAGE_FLOOR}}` and the pyproject `fail_under`). A
 dedicated real-fleet test module additionally runs the gate runner and the
 health/layout probes against the live sibling packages under

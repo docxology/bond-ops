@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 
+import pytest
 from conftest import FAKE_UV_SLOW, make_package, read_log
 
 from bond_ops import gates as g
@@ -266,3 +267,36 @@ def test_run_command_env_propagation(tmp_path):
     assert with_env.output.strip() == "yes"
     inherited = g.run_command(probe, cwd=tmp_path)
     assert inherited.output.strip() == "no"
+
+
+def test_parse_coverage_malformed_total_falls_back_to_failure_line():
+    """A malformed TOTAL cell must not mask the reported failure coverage."""
+    output = (
+        "TOTAL                        9      4   n/a%\n"
+        "Required test coverage of 90% not reached. Total coverage: 55.56%\n"
+    )
+    assert g.parse_coverage(output) == 55.56
+
+
+def test_parse_coverage_malformed_and_no_failure_line():
+    assert g.parse_coverage("TOTAL   9   4   n/a%\n") is None
+
+
+def test_aggregate_gate_limit_zero_selects_nothing(tmp_path):
+    root = tmp_path / "fleet"
+    root.mkdir()
+    make_package(root, "bond-ops")
+    rep = g.run_aggregate_gate(
+        suite_root=root, limit=0, pytest_cmd=PYTEST, run_ruff=False, run_mypy=False
+    )
+    assert rep.total == 0
+    assert rep.all_pass is False
+
+
+def test_aggregate_gate_negative_limit_raises(tmp_path):
+    root = tmp_path / "fleet"
+    root.mkdir()
+    with pytest.raises(ValueError, match="limit must be >= 0"):
+        g.run_aggregate_gate(
+            suite_root=root, limit=-1, pytest_cmd=PYTEST, run_ruff=False, run_mypy=False
+        )
