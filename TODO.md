@@ -321,6 +321,8 @@ contract (90 %); the measured value is only a receipt.
 
 ## Round-2 (2026-08-06)
 
+Committed as `1ce5bb8`. Baseline 133 -> 145 tests.
+
 Round-2 improvement pass: deep code review, verified fixes with regression
 tests, manuscript deepened, gates re-run green.
 
