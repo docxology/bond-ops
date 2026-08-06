@@ -76,3 +76,27 @@ def test_real_fleet_toolchain():
     assert versions["git"] is not None
     assert versions["uv"] is not None
     assert versions["python"] is not None
+
+
+def test_real_fleet_film_codenames_match_roster():
+    """Every present film package's declared mission codename equals the ROSTER row.
+
+    Regression for TODO C1: bond-ops carries a codename per film slug, and a
+    film package renaming itself (or this roster row drifting) used to be
+    invisible. This reads each present film package's declaration as data and
+    fails loudly on any divergence. Absent packages are skipped (an absent
+    package is not a codename mismatch).
+    """
+    from bond_ops.inventory import ROSTER, declared_film_codename
+
+    checked = 0
+    for rec in (r for r in ROSTER if r.kind == "film"):
+        if not (DEFAULT_SUITE_ROOT / rec.slug).is_dir():
+            continue
+        declared = declared_film_codename(DEFAULT_SUITE_ROOT / rec.slug, rec.slug)
+        assert declared == rec.codename, (
+            f"{rec.slug}: declared {declared!r} != roster {rec.codename!r} "
+            "(film package renamed its mission codename, or this roster row drifted)"
+        )
+        checked += 1
+    assert checked > 0, "no present film packages were checked"

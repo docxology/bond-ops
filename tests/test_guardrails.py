@@ -177,3 +177,18 @@ def test_manuscript_quoted_inventory_line_is_what_the_cli_prints(capsys, tmp_pat
     out = capsys.readouterr().out
     assert code == 0
     assert expected in out, f"manuscript quotes {expected!r}; CLI printed:\n{out}"
+
+
+def test_version_matches_pyproject():
+    """``bond_ops.__version__`` must equal the installed ``[project] version``.
+
+    These two drifted apart (0.1.0 vs 3.0.0) because nothing bound them; the
+    manifest consumers read one and installers read the other. This binds the
+    runtime constant to pyproject so a bump in one forces a bump in both.
+    """
+    import tomllib
+
+    from bond_ops import __version__
+
+    data = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert __version__ == data["project"]["version"]

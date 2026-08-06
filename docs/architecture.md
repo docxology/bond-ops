@@ -40,6 +40,10 @@ The authoritative record of what the suite *is*: a frozen tuple of
 packages in Layer order followed by twenty-seven film packages in canon order.
 `INFRA_COUNT`, `FILM_COUNT` and `SUITE_SIZE` are computed from that tuple,
 never typed in, so the roster cannot disagree with its own arithmetic.
+`declared_film_codename(dir, slug)` reads a present film package's mission
+codename as data (`mission.py` literal → module constant → config.yaml
+fallback), never by importing a sibling, so the roster's codenames can be
+coherence-checked against what the fleet actually declares.
 
 Everything else here is pure: `roster()`, `slugs()`, `package_record()`,
 `is_known_slug()`, `package_dir()` (raises on an unknown slug), and
@@ -116,9 +120,9 @@ here pass?".
   marker, skipping `.git`, `uv.lock`, `.venv`, caches and `output/`. The marker
   is built by string concatenation so this module never contains the contiguous
   literal and cannot flag itself.
-- `probe_layout(dir, slug)` — `has_pyproject`, `pyproject_matches_slug` (via a
-  minimal `[project] name` reader, because `tomllib` is 3.11+ and this package
-  supports 3.10), `has_tests_dir`, `has_src_dir`.
+- `probe_layout(dir, slug)` — `has_pyproject`, `pyproject_matches_slug` (via
+  the stdlib `tomllib` reader, now that the package floor is 3.12), `has_tests_dir`,
+  `has_src_dir`.
 - `tool_versions()` — real `git` / `uv` / `python` version probe; `None` for
   anything not on `PATH`.
 - `HealthReport` / `health()` / `sweep()` — composite per package, in roster

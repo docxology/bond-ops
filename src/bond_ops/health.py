@@ -11,10 +11,10 @@ All git/fs inspection is real subprocess + real files — no mocks.
 
 from __future__ import annotations
 
-import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -149,22 +149,21 @@ def lineage_sweep(package_dir: str | Path) -> list[str]:
 
 
 def _read_project_name(pyproject_text: str) -> str | None:
-    """Extract the ``[project] name = "..."`` value from pyproject TOML text.
+    """Extract the ``[project] name`` value from pyproject TOML text.
 
-    A minimal, dependency-free parser: only the ``[project]`` section is
-    scanned (stdlib ``tomllib`` is 3.11+; the package supports 3.10).
+    Uses stdlib ``tomllib`` (3.11+; the package floor is 3.12). Returns
+    ``None`` when the text is not valid TOML or carries no ``[project] name``
+    (so a malformed pyproject degrades to "name unknown" rather than raising).
     """
-    in_project = False
-    for line in pyproject_text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            in_project = stripped == "[project]"
-            continue
-        if in_project:
-            match = re.match(r'name\s*=\s*"([^"]+)"', stripped)
-            if match:
-                return match.group(1)
-    return None
+    try:
+        data = tomllib.loads(pyproject_text)
+    except tomllib.TOMLDecodeError:
+        return None
+    project = data.get("project")
+    if not isinstance(project, dict):
+        return None
+    name = project.get("name")
+    return name if isinstance(name, str) else None
 
 
 def probe_layout(package_dir: str | Path, slug: str) -> dict[str, bool]:

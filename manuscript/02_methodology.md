@@ -18,6 +18,14 @@ $$
 \operatorname{complete}(r) \iff \operatorname{missing}(r) = \varnothing
 $$ {#eq:reconcile-verdict}
 
+
+Beyond presence, the roster is also checked for *identity drift*: every present
+film package's declared mission codename — read as data from its own
+`mission.py` / config, never by importing a sibling — must equal the matching
+{{FILM_COUNT}}-row roster codename. A film that renames itself (or a roster row
+that drifts) fails loudly rather than silently, so the QUARTERMASTER's copy of
+fleet identity cannot rot unseen.
+
 ## Aggregate gate
 
 ::: {.definition #def:aggregate-gate title="Aggregate gate"}
@@ -95,7 +103,11 @@ Diagnostics widen; verdicts do not move.
 ::: {.definition #def:ops-surface title="The `ops` surface"}
 `bond_ops.cli` exposes **{{CLI_COMMAND_COUNT}}** subcommands — `inventory`,
 `gate`, `health`, `roster` — each with a human-readable form and a `--json`
-form emitting a versioned manifest. Exit codes: `0` on success, `1` when a
+form emitting a versioned manifest. The gate overrides `--pytest-cmd` /
+`--ruff-cmd` / `--mypy-cmd` each accept a single shell-tokenized command
+(parsed with `shlex.split`), so a value containing `-`-prefixed arguments —
+e.g. `uv run pytest tests/ -q` — is usable; a test drives one through the CLI
+and asserts the `-`-prefixed token reached the subprocess. Exit codes: `0` on success, `1` when a
 `gate` verdict fails, `2` on usage error (unknown slug, negative `--limit`).
 Every default is read-only; only `roster --execute` starts anything.
 :::

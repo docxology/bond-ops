@@ -315,3 +315,55 @@ git status --short
 Live measured counts and the environment they were measured in:
 [`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md). The floor is the
 contract (90 %); the measured value is only a receipt.
+
+
+---
+
+## Round-2 (2026-08-06)
+
+Round-2 improvement pass: deep code review, verified fixes with regression
+tests, manuscript deepened, gates re-run green.
+
+### Baseline (start of round-2)
+
+`uv run pytest tests/ --cov=src --cov-fail-under=90` → **133 passed, 0 failed,
+0 skipped**, **100.00 %** line+branch (669 stmts / 140 branches); `ruff check`
+clean; `ruff format --check` clean (31 files); `mypy` clean (12 files). Recorded
+at the top of this file and in `docs/_generated/COUNTS.md`.
+
+### Findings closed this round
+
+| ID | Finding | Fix (test evidence) |
+|---|---|---|
+| C2 | `--pytest-cmd` / `--ruff-cmd` / `--mypy-cmd` used `nargs="+"`, so a value with a `-`-prefixed token was unusable. | Options are now single `shlex.split` strings (`cli.py`). `tests/test_cli.py::test_gate_pytest_cmd_accepts_dash_arguments` drives `gate --pytest-cmd "uv run pytest tests/ -q"` and asserts `-q` reached the subprocess. |
+| C1 | 13 film codenames historically diverged from `bond-coordinator`'s registry and nothing detected a film renaming itself. | New data-driven resolver `inventory.declared_film_codename()` reads each film package's mission codename as data (literal → module constant → `config.yaml` fallback), never importing a sibling — verified 27/27 against the live fleet. `tests/test_real_fleet.py::test_real_fleet_film_codenames_match_roster` fails loudly on any divergence; 7 positive/negative-control unit tests in `tests/test_inventory.py`. |
+| C3 | The declared `>=3.10` floor had never been executed; a hand-rolled `[project] name` parser existed solely to avoid `tomllib` (3.11+), while `mypy` was already pinned to 3.12. | Floor raised to `>=3.12` in `pyproject.toml` (`requires-python`, ruff `target-version = "py312"`), `_read_project_name` rewritten on stdlib `tomllib`, prose updated (`manuscript/05_experimental_setup.md`, `docs/architecture.md`). Malformed-TOML branch covered by `tests/test_health.py::test_probe_layout_malformed_pyproject`. |
+| (new) | `bond_ops.__version__` (`"3.0.0"`) disagreed with `[project] version` (`0.1.0`). | Unified on `0.1.0`; bound by new guardrail `tests/test_guardrails.py::test_version_matches_pyproject`. |
+| (new) | `declared_film_codename` joined sibling source files with no separator, so the constant `^` anchor failed if a preceding file lacked a trailing newline (invisible live, where files end in newlines; caught by the synthetic apostrophe test). | Join now newline-terminates each file so constant definitions always sit at a line start. `test_declared_film_codename_constant_apostrophe` pins it. |
+
+### Manuscript
+
+- New honest `manuscript/08_limitations_and_uncertainty.md` (gate verdicts are
+  necessary-not-sufficient; verdicts narrower than diagnostics; identity is a
+  reflection; determinism is same-environment; non-root-portability scope;
+  no-wall-clock trade-off; coordinator-registry drift risk).
+- `02_methodology.md` / `03_results.md` now describe the codename-coherence
+  check and the full-command gate overrides.
+- Outputs regenerated (`output/variables/manuscript_variables.json`, four
+  figures under `output/figures/`) from the live engine/scripts.
+- All numbers stay token-injected; no hand-authored constants added.
+
+### Final gate numbers (this round)
+
+`uv run pytest tests/ --cov=src --cov-fail-under=90` → **145 passed, 0 failed,
+0 skipped**, **100.00 %** line+branch over 696 stmts / 146 branches
+(Python 3.14.6). `ruff check` clean; `ruff format --check` clean (31 files);
+`mypy src/ scripts/` clean (12 files). `rg template[_]code_project` clean.
+
+### Left for a future round
+
+- `C4` — 63 stray herdr workspaces on the live daemon (needs a human decision).
+- `E2` — opt-in `--require-complete` for `ops gate`.
+- `E3` — `ops gate --out PATH` manifest writer.
+- `V2` — end-to-end manuscript PDF render (pandoc pipeline) with no `??`/`{{`.
+

@@ -15,8 +15,10 @@ output, never from prose.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 SUITE_NAME = "PROJECT BOND"
 BOND_OPS_CODENAME = "QUARTERMASTER"
@@ -236,3 +238,68 @@ def package_dir(slug: str, suite_root: str | Path = DEFAULT_SUITE_ROOT) -> Path:
     if not is_known_slug(slug):
         raise ValueError(f"unknown suite slug: {slug!r}")
     return Path(suite_root) / slug
+
+
+def declared_film_codename(package_dir: str | Path, slug: str) -> str | None:
+    """Return a present film package's *declared* mission codename, read as data.
+
+    The suite contract gives each film package a ``MissionBrief(codename=...)``
+    but the declaration style varies: some inline a literal
+    (``codename="SILVA"``), some reference a module constant
+    (``codename=CODENAME`` / ``codename=settings.CODENAME`` /
+    ``codename=QUANTUM_CODENAME``), and a couple resolve it dynamically
+    (``codename=load_scenario().codename``, which reads ``config.yaml``).
+    This resolves the value by the cascade below, never by importing a
+    sibling — the QUARTERMASTER reads its fleet as data, per the layer
+    contract.
+
+    Used by the codename-coherence test to fail loudly when a film package
+    renames itself (or this roster row drifts). Returns ``None`` when the
+    codename cannot be resolved from disk.
+    """
+    root = Path(package_dir)
+    missions = sorted(root.joinpath("src").rglob("mission.py"))
+    if not missions:
+        return None
+    text = missions[0].read_text(encoding="utf-8", errors="ignore")
+
+    # 1. Inline literal: codename = "X"  (may carry a trailing comma).
+    inline = re.search(r'\bcodename\s*=\s*"([^"]+)"', text)
+    if inline:
+        return inline.group(1)
+
+    # 2. Identifier / dotted reference: codename = IDENT[.CODENAME]
+    ref = re.search(
+        r"\bcodename\s*=\s*([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*,?\s*$",
+        text,
+        re.M,
+    )
+    if ref:
+        ident = ref.group(1)
+        last = ident.split(".")[-1].lstrip("_")
+        # Join with newlines so a constant definition is always at a line start
+        # (the ``^`` anchor of the MULTILINE scan) even if the preceding source
+        # file does not end with one. Concatenating bare would let one file's
+        # trailing code swallow the next file's first definition.
+        src_text = (
+            "\n".join(
+                p.read_text(encoding="utf-8", errors="ignore")
+                for p in sorted(root.joinpath("src").rglob("*.py"))
+                if p.is_file()
+            )
+            + "\n"
+        )
+        double_q = re.compile(rf'^_?{re.escape(last)}\s*=\s*"([^"]*)"', re.M)
+        single_q = re.compile(rf"^_?{re.escape(last)}\s*=\s*'([^']*)'", re.M)
+        const = double_q.search(src_text) or single_q.search(src_text)
+        if const:
+            return cast("str", const.group(1))
+
+    # 3. Dynamic ``...().codename`` fallback: the package's own config.yaml.
+    config = root.joinpath("manuscript", "config.yaml")
+    if config.is_file():
+        cfg_text = config.read_text(encoding="utf-8", errors="ignore")
+        hits = re.findall(r'codename:\s*"([^"]+)"', cfg_text)
+        if hits:
+            return cast("str", hits[-1])
+    return None

@@ -3,7 +3,7 @@
 Generated from an actual gate run. Do not hand-edit; re-run the commands below
 and replace the values with what they printed.
 
-- **Test count:** 133 passed, 0 failed, 0 skipped
+- **Test count:** 145 passed, 0 failed, 0 skipped
 - **Coverage (`src/`, line + branch):** 100.00 %
 - **Statements missed:** 0 · **Partial branches:** 0
 - **Coverage pragmas in `src/bond_ops/`:** 0 (swept and enforced by
@@ -13,14 +13,14 @@ and replace the values with what they printed.
 
 | Module | Stmts | Miss | Branch | BrPart | Cover |
 |---|---:|---:|---:|---:|---:|
-| `src/bond_ops/cli.py` | 124 | 0 | 26 | 0 | 100.00% |
+| `src/bond_ops/cli.py` | 125 | 0 | 26 | 0 | 100.00% |
 | `src/bond_ops/figures.py` | 102 | 0 | 18 | 0 | 100.00% |
 | `src/bond_ops/gates.py` | 157 | 0 | 38 | 0 | 100.00% |
-| `src/bond_ops/health.py` | 126 | 0 | 30 | 0 | 100.00% |
-| `src/bond_ops/inventory.py` | 62 | 0 | 8 | 0 | 100.00% |
+| `src/bond_ops/health.py` | 124 | 0 | 24 | 0 | 100.00% |
+| `src/bond_ops/inventory.py` | 90 | 0 | 20 | 0 | 100.00% |
 | `src/bond_ops/manuscript_variables.py` | 42 | 0 | 6 | 0 | 100.00% |
 | `src/bond_ops/provision.py` | 56 | 0 | 14 | 0 | 100.00% |
-| **TOTAL** | **669** | **0** | **140** | **0** | **100.00%** |
+| **TOTAL** | **696** | **0** | **146** | **0** | **100.00%** |
 
 ## What the 100% does and does not include
 
@@ -33,10 +33,14 @@ only production line excluded from measurement by any mechanism here; two tests
 in `tests/test_guardrails.py` pin the exclusion list and assert the pattern
 matches in `cli.py` and nowhere else.
 
-`health.py` and `gates.py` grew by 4 and 7 statements against the previous
-receipt: two formerly-pragma'd `except` branches in `health.py` are now real,
-covered code (an unreadable file and an unexecutable binary, both driven with
-real files), and `gates.py` gained the wall-clock scrubber.
+Movement since the previous receipt: the round-2 pass added the
+data-driven `declared_film_codename()` resolver (`inventory.py`: +28 statements,
++12 branches, driven by seven negative/positive-control unit tests and the
+real-fleet coherence test), moved `health._read_project_name` from a hand-rolled
+parser to stdlib `tomllib` (the floor is now 3.12, so health shrank to 124
+statements / 24 branches with its malformed-TOML branch covered), gave the CLI
+gate overrides `shlex.split` parsing (cli.py: +1 statement), and unified
+`__version__` with `[project] version` (bound by a new guardrail test).
 
 ## How it was measured
 

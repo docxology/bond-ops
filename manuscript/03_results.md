@@ -10,6 +10,10 @@ measured from real subprocess and filesystem state:
   {{SUITE_SIZE}}/{{SUITE_SIZE}} · missing 0 · complete True`
   ([@eq:reconcile-verdict]); the verdict is rendered as the Python boolean it
   is, and a test binds this quoted line to the CLI's real output.
+- **Fleet identity.** Every present film package's declared mission codename
+  is cross-checked against the roster as data; the coherence test fails loudly
+  on a rename or drift, so the QUARTERMASTER's copy of the {{FILM_COUNT}}-film
+  roster matches what the fleet actually declares.
 - **Aggregate gate.** `ops gate --json` emits a deterministic
   `{{GATE_MANIFEST}}` manifest ([@def:aggregate-gate]) containing, for each
   package, its presence, pytest pass/fail, measured coverage, ruff and mypy

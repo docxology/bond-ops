@@ -6,7 +6,7 @@ All importable fleet-operations logic lives here. `scripts/` remains thin.
 
 | Module | Contents |
 |---|---|
-| `inventory.py` | `PackageRecord`, `ROSTER` (33 records), `SUITE_NAME`, `SUITE_SIZE`/`FILM_COUNT`/`INFRA_COUNT`, `reconcile()`, `package_record()`, `is_known_slug()`, `package_dir()`. |
+| `inventory.py` | `PackageRecord`, `ROSTER` (33 records), `SUITE_NAME`, `SUITE_SIZE`/`FILM_COUNT`/`INFRA_COUNT`, `reconcile()`, `package_record()`, `is_known_slug()`, `package_dir()`, and the data-driven `declared_film_codename()` (reads a film package's mission-codename declaration as data for the coherence check). |
 | `gates.py` | `run_command()`, `parse_coverage()`/`parse_coverage_failure()`/`coverage_stats()`, `gate_one()`, `run_aggregate_gate()`, `AggregateGateReport` (+`coverage_values`, `failed_slugs`), `build_manifest()`/`manifest_to_json()`/`write_manifest()`/`parse_manifest()`, `format_report()`. Default commands run one package per subprocess. Public constants `GATE_MANIFEST_NAME`, `COVERAGE_FLOOR`, `DEFAULT_TIMEOUT`. Optional `env` passthrough on run/gate calls. A malformed `TOTAL` cell falls through to the failure-line parse; `limit=0` selects nothing and a negative limit raises `ValueError`. |
 | `health.py` | `parse_porcelain()` (pure), `git_health()`, `required_files()`, `lineage_sweep()`, `probe_layout()`/`_read_project_name()`, `tool_versions()`, `health()`, `sweep()`, `HealthReport` (+`probes`, `layout_ok`). `REQUIRED_FILES` is the public constant. |
 | `provision.py` | `build_roster()`, `resolve_prompt()`, `render_provision_script()`, `format_provision()`, `roster_report()`, `execute_script()` (dry-run default via CLI). |

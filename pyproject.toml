@@ -16,7 +16,7 @@ description = "Fleet health, aggregate gates, and provisioning for the 33-packag
 authors = [
     {name = "Daniel Ari Friedman", email = "daniel@activeinference.institute"}
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "pyyaml>=6.0",
     "matplotlib>=3.7.0",
@@ -81,7 +81,7 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]

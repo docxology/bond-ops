@@ -28,4 +28,4 @@ __all__ = [
     "SUITE_SIZE",
 ]
 
-__version__ = "3.0.0"
+__version__ = "0.1.0"

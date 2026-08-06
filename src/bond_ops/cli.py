@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -123,9 +124,11 @@ def _cmd_gate(args: argparse.Namespace) -> int:
             run_ruff=not args.no_ruff,
             run_mypy=not args.no_mypy,
             timeout=args.timeout,
-            pytest_cmd=tuple(args.pytest_cmd) if args.pytest_cmd else DEFAULT_PYTEST_CMD,
-            ruff_cmd=tuple(args.ruff_cmd) if args.ruff_cmd else DEFAULT_RUFF_CMD,
-            mypy_cmd=tuple(args.mypy_cmd) if args.mypy_cmd else DEFAULT_MYPY_CMD,
+            pytest_cmd=tuple(shlex.split(args.pytest_cmd))
+            if args.pytest_cmd
+            else DEFAULT_PYTEST_CMD,
+            ruff_cmd=tuple(shlex.split(args.ruff_cmd)) if args.ruff_cmd else DEFAULT_RUFF_CMD,
+            mypy_cmd=tuple(shlex.split(args.mypy_cmd)) if args.mypy_cmd else DEFAULT_MYPY_CMD,
         )
     except ValueError as exc:  # negative --limit
         print(f"ops: error: {exc}", file=sys.stderr)
@@ -258,9 +261,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     gate.add_argument("--no-ruff", action="store_true", help="skip ruff checks")
     gate.add_argument("--no-mypy", action="store_true", help="skip mypy checks")
-    gate.add_argument("--pytest-cmd", default=None, nargs="+", help=argparse.SUPPRESS)
-    gate.add_argument("--ruff-cmd", default=None, nargs="+", help=argparse.SUPPRESS)
-    gate.add_argument("--mypy-cmd", default=None, nargs="+", help=argparse.SUPPRESS)
+    gate.add_argument("--pytest-cmd", default=None, type=str, help=argparse.SUPPRESS)
+    gate.add_argument("--ruff-cmd", default=None, type=str, help=argparse.SUPPRESS)
+    gate.add_argument("--mypy-cmd", default=None, type=str, help=argparse.SUPPRESS)
 
     hel = sub.add_parser("health", help="per-repo git health + lineage sweep")
     add_common(hel)

@@ -275,3 +275,18 @@ def test_binary_version_unexecutable_binary(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bindir))
     assert shutil.which("brokenbin") == str(broken)  # it really does resolve
     assert h._binary_version("brokenbin") is None
+
+
+def test_probe_layout_malformed_pyproject(tmp_path):
+    """A pyproject that is not valid TOML degrades to ``name unknown``, not a raise.
+
+    The hand-rolled parser could never trip here; switching to ``tomllib``
+    introduced a decode-failure branch that this pins (TODO C3 floor work).
+    """
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "pyproject.toml").write_text("[project\nname = 'unclosed quote\n", encoding="utf-8")
+    assert h._read_project_name('[project\nname = "unclosed\n') is None
+    probes = h.probe_layout(pkg, "pkg")
+    assert probes["has_pyproject"] is True
+    assert probes["pyproject_matches_slug"] is False

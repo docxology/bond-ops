@@ -117,3 +117,78 @@ def test_roster_accessor_matches_constants():
     assert len(records) == inv.SUITE_SIZE
     assert sum(1 for r in records if r.kind == "infra") == inv.INFRA_COUNT
     assert sum(1 for r in records if r.kind == "film") == inv.FILM_COUNT
+
+
+def test_declared_film_codename_inline(tmp_path):
+    pkg = tmp_path / "skyfall"
+    src = pkg / "src" / "skyfall"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text(
+        'def brief(self):\n    return MissionBrief(codename="SILVA", film=self.film)\n',
+        encoding="utf-8",
+    )
+    assert inv.declared_film_codename(pkg, "skyfall") == "SILVA"
+
+
+def test_declared_film_codename_constant(tmp_path):
+    pkg = tmp_path / "octopussy"
+    src = pkg / "src" / "octopussy"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text("codename = CODENAME,", encoding="utf-8")
+    (src / "constants.py").write_text('CODENAME = "FABERGÉ"\n', encoding="utf-8")
+    assert inv.declared_film_codename(pkg, "octopussy") == "FABERGÉ"
+
+
+def test_declared_film_codename_constant_apostrophe(tmp_path):
+    pkg = tmp_path / "the_living_daylights"
+    src = pkg / "src" / "the_living_daylights"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text("codename=settings.CODENAME,", encoding="utf-8")
+    (src / "settings.py").write_text('CODENAME = "SNIPER\'S NEST"\n', encoding="utf-8")
+    assert inv.declared_film_codename(pkg, "the_living_daylights") == "SNIPER'S NEST"
+
+
+def test_declared_film_codename_single_quote_constant(tmp_path):
+    pkg = tmp_path / "g"
+    src = pkg / "src" / "g"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text("codename=_C,\n", encoding="utf-8")
+    (src / "c.py").write_text("_C = 'HELLO'\n", encoding="utf-8")
+    assert inv.declared_film_codename(pkg, "g") == "HELLO"
+
+
+def test_declared_film_codename_config_fallback(tmp_path):
+    pkg = tmp_path / "dr_no"
+    src = pkg / "src" / "dr_no"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text("codename=load_scenario().codename", encoding="utf-8")
+    m = pkg / "manuscript"
+    m.mkdir()
+    (m / "config.yaml").write_text('mission:\n  codename: "CRAB KEY"\n', encoding="utf-8")
+    assert inv.declared_film_codename(pkg, "dr_no") == "CRAB KEY"
+
+
+def test_declared_film_codename_ref_without_const(tmp_path):
+    pkg = tmp_path / "z"
+    src = pkg / "src" / "z"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text("codename=UNKNOWN_X,\n", encoding="utf-8")
+    assert inv.declared_film_codename(pkg, "z") is None
+
+
+def test_declared_film_codename_absent_mission(tmp_path):
+    pkg = tmp_path / "x"
+    (pkg / "src" / "x").mkdir(parents=True)
+    assert inv.declared_film_codename(pkg, "x") is None
+
+
+def test_declared_film_codename_config_without_codename(tmp_path):
+    """A present config with no codename value falls through to None."""
+    pkg = tmp_path / "y"
+    src = pkg / "src" / "y"
+    src.mkdir(parents=True)
+    (src / "mission.py").write_text("codename=UNKNOWN_Y,\n", encoding="utf-8")
+    m = pkg / "manuscript"
+    m.mkdir()
+    (m / "config.yaml").write_text("package:\n  name: y\n", encoding="utf-8")
+    assert inv.declared_film_codename(pkg, "y") is None

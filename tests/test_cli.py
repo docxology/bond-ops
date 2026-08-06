@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 import pytest
-from conftest import make_package
+from conftest import make_package, read_log
 
 from bond_ops.cli import COMMANDS, _parse_only, _resolve_root, build_parser, main
 from bond_ops.inventory import DEFAULT_SUITE_ROOT
@@ -344,3 +344,32 @@ def test_gate_json_is_byte_identical_across_two_cli_invocations(capsys, tmp_path
     assert "assert False" in error  # the diagnostic text really is persisted
     assert "<elapsed>" in error  # a varying duration really was present
     assert first == second
+
+
+def test_gate_pytest_cmd_accepts_dash_arguments(capsys, tmp_path, fake_uv):
+    """A --pytest-cmd override must accept a full command with dash args.
+
+    Regression for TODO C2: the old ``nargs="+"`` form stopped consuming at
+    the first leading-dash token, so a real command like
+    ``uv run pytest tests/ -q`` was unusable. The option is now a single
+    shlex-split string; this drives it and asserts the ``-q`` token actually
+    reached the subprocess (logged by the real fake-``uv`` on PATH).
+    """
+    root = tmp_path / "fleet"
+    root.mkdir()
+    make_package(root, "bond-ops")
+    code = main(
+        [
+            "gate",
+            "--json",
+            "--only",
+            "bond-ops",
+            "--suite-root",
+            str(root),
+            "--pytest-cmd",
+            "uv run pytest tests/ -q",
+        ]
+    )
+    assert code == 0
+    log = read_log(fake_uv.log)
+    assert "-q" in log, f"the -q token did not reach the subprocess; log:\n{log}"

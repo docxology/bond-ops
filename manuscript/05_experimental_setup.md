@@ -1,8 +1,8 @@
 # Experimental Setup {#sec:setup}
 
-- **Runtime.** Python ≥3.10, standard library + `subprocess` + `pyyaml` +
-  `matplotlib` (figures only). No `infrastructure.*` and no sibling BOND
-  import.
+- **Runtime.** Python ≥3.12 (the lowest exercised floor; the toolchain is
+  standard library + `subprocess` + `pyyaml` + `matplotlib` (figures only). No
+  `infrastructure.*` and no sibling BOND import.
 - **Gate command** invoked per package (one subprocess each): `uv run pytest
   tests/ --cov=src --cov-fail-under={{COVERAGE_FLOOR}}`, killed after
   {{GATE_TIMEOUT_S}} s so a hung package cannot stall the sweep (the timeout is
