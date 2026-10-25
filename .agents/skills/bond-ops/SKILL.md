@@ -58,7 +58,7 @@ uv run python scripts/z_generate_manuscript_variables.py
   (spelled ``template[_]code_project`` in prose); bracket-split the token
   anywhere this repo must mention it, so the doc cannot trip its own sweep.
 - **No `infrastructure.*` / sibling imports** in `src/bond_ops/` (stdlib +
-  subprocess + PyYAML only).
+  subprocess, plus PyYAML for manuscript config and matplotlib in `figures.py`).
 - **Manuscript tokens** come from `manuscript/config.yaml` +
   `src/bond_ops/manuscript_variables.py`; fleet gate results are runtime
   diagnostics, never hand-authored metrics.

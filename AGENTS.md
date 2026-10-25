@@ -13,7 +13,7 @@ Read [`docs/agent_instructions.md`](docs/agent_instructions.md) first, then
 | `scripts/` | Thin orchestrators only (argparse bootstrap + dispatch + printing). Business logic stays in `src/` — including the argparse surface itself, which lives in `src/bond_ops/cli.py` so the coverage gate can see it. |
 | `tests/` | Real subprocesses, real git repos, real files. **Zero mocks** (no `MagicMock` / `mocker.patch` / `unittest.mock`). `monkeypatch` may redirect `PATH` or an env var at a real artefact; it may never replace a function or return value. |
 | Scope | Exactly this package directory. Never edit siblings, `bond/` root files, or the template repo — not even a sibling the fleet gate reports as failing. |
-| Publishing | The published remote is `docxology/bond-ops`; pushes go to `main` only, and the siblings the fleet gate inspects stay untouched. |
+| Publishing | The remote is `docxology/bond-ops`; this package publishes only its own repo — the siblings the fleet gate inspects stay read-only. |
 
 ## Build and test
 

@@ -1,7 +1,7 @@
 # scripts/ — Thin Orchestrators
 
 `scripts/` is argv-facing glue only. All business logic lives in
-`src/bond_ops/`. The two entry points:
+`src/bond_ops/`. The three entry points:
 
 | Script | Purpose |
 |---|---|

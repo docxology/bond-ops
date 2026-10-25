@@ -10,6 +10,6 @@ Project-scoped skill for the in-repo `bond-ops` fleet-operations package.
 
 ## Audience
 
-Agents that build/maintain `bond-ops` (QUARTERMASTER): pushing the fleet
-roscope — inventory, aggregate gates, health, provisioning — and verifying the
-shared guardrails.
+Agents that build/maintain `bond-ops` (QUARTERMASTER): the fleet-operations
+surface — inventory, aggregate gates, health, provisioning — and the shared
+guardrails it is verified against.
