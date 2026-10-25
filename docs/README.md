@@ -1,8 +1,8 @@
 # docs/ — bond-ops operational documentation
 
-The rulebook for `projects/working/bond/bond-ops/`, the Layer-4 QUARTERMASTER
-of PROJECT BOND. Every document here is a constraint on how this package may
-change, not background reading.
+The rulebook for this package (the `bond-ops` repo; `projects/working/bond/bond-ops/`
+in the BOND monorepo), the Layer-4 QUARTERMASTER of PROJECT BOND. Every document
+here is a constraint on how this package may change, not background reading.
 
 ## What is in here
 

@@ -3,7 +3,8 @@
 bond-ops is the QUARTERMASTER: it owns, as *data*, the authoritative list of
 the whole suite — 6 infrastructure packages plus the 27 Eon/non-Eon film
 packages — and reconciles that roster against the live directories under the
-suite root (``projects/working/bond/``). Nothing here executes other
+suite root (the directory holding this checkout — ``parents[3]`` from this
+file, overridable with ``ops --suite-root``). Nothing here executes other
 packages; it only describes them and checks what exists on disk.
 
 The roster is seeded from the fleet conventions recorded in the suite
@@ -149,7 +150,9 @@ INFRA_COUNT = len(_INFRA)  # 6
 FILM_COUNT = len(_FILMS)  # 27
 SUITE_SIZE = INFRA_COUNT + FILM_COUNT  # 33
 
-#: Default suite root: ``projects/working/bond`` relative to this file.
+#: Default suite root: the directory holding this checkout — ``parents[3]``
+#: from this file (in the BOND monorepo ``projects/working/bond``, for a
+#: standalone clone the parent of the repo root).
 DEFAULT_SUITE_ROOT = Path(__file__).resolve().parents[3]
 
 

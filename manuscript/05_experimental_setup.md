@@ -7,7 +7,8 @@
   tests/ --cov=src --cov-fail-under={{COVERAGE_FLOOR}}`, killed after
   {{GATE_TIMEOUT_S}} s so a hung package cannot stall the sweep (the timeout is
   recorded as a gate failure with its exception text, never as a pass).
-- **Fleet root**: `{{SUITE_NAME}}` at `projects/working/bond/`,
+- **Fleet root**: `{{SUITE_NAME}}` in the directory holding this package's
+  checkout (`--suite-root` overrides it),
   {{SUITE_SIZE}} packages ({{INFRA_COUNT}} infra, {{FILM_COUNT}} films).
 - **Isolation contract**: each gate subprocess runs with `cwd` equal to the
   package's own directory; never all packages in one pytest process
@@ -31,6 +32,6 @@ deterministic tmp-path fake packages (and a fake `uv`/`herdr` on `PATH`), with
 zero mocks, and must hold ≥{{COVERAGE_FLOOR}}% line+branch coverage on `src/` (enforced by
 `--cov-fail-under={{COVERAGE_FLOOR}}` and the pyproject `fail_under`). A
 dedicated real-fleet test module additionally runs the gate runner and the
-health/layout probes against the live sibling packages under
-`projects/working/bond/`, giving the QUARTERMASTER an end-to-end gate it can
-trust on the fleet it operates.
+health/layout probes against the live sibling packages under the auto-detected
+fleet root, giving the QUARTERMASTER an end-to-end gate it can trust on the
+fleet it operates.

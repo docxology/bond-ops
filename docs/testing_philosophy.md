@@ -43,7 +43,7 @@ substitution is a mock.
 | Toolchain probe | Real `git` / `uv` / `python` on `PATH`, plus a deliberately nonexistent binary for the `None` branch. |
 | Figures | Real PNG files written to `tmp_path`, checked for the PNG magic bytes and for byte-identical output across two renders. |
 | Recovery paths | A real malformed `config.yaml`, a real corrupt `manuscript_variables.json`. |
-| The live fleet | `tests/test_real_fleet.py` runs the gate runner and the health / layout / toolchain probes against the actual sibling packages under `projects/working/bond/`. |
+| The live fleet | `tests/test_real_fleet.py` runs the gate runner and the health / layout / toolchain probes against the actual sibling packages under the suite root (the directory holding this checkout; `inventory.DEFAULT_SUITE_ROOT`). |
 
 ## The self-gate
 

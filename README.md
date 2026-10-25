@@ -5,10 +5,13 @@ PROJECT BOND suite — 27 film packages plus 6 infrastructure packages, 33 total
 
 **Manuscript identity:** `BOND-OPS` · codename **QUARTERMASTER** · Layer 4.
 
-This is a **local-only** working tree. There is no remote and nothing is ever
-pushed. `bond-ops` owns exactly its own directory and inspects the sibling
-suite read-only, to reconcile the roster, run per-package gates, and report
-health.
+`bond-ops` owns exactly its own directory and inspects the sibling suite
+read-only, to reconcile the roster, run per-package gates, and report health.
+The fleet root is auto-detected as the directory that holds this checkout (the
+parent of the repo root; override with `--suite-root`), and roster slugs are
+matched against the directory names there — a sibling checked out under a
+prefixed directory (e.g. `bond-skyfall`) therefore reads as `missing` under its
+slug and shows up in `unexpected` instead.
 
 ## The concept mapping
 
@@ -78,8 +81,11 @@ in `tests/test_guardrails.py` hold this together — one resolves the installed
 entry point back to `bond_ops.cli.main`, the other runs both spellings and
 requires byte-identical output.
 
-Exit codes: `0` success, `1` a failed gate verdict, `2` usage error (unknown
-slug, negative `--limit`, argparse misuse).
+Exit codes: `0` success, `1` a failed gate verdict or a failing
+`roster --execute` provisioning script, `2` usage error (unknown slug, negative
+`--limit`, argparse misuse). `inventory`, `health` and read-only `roster` are
+reporting commands and always exit `0` — read their verdict from `--json`, not
+from `$?`.
 
 ## The MissionProvider surface
 

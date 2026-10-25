@@ -4,8 +4,8 @@
 
 This manuscript records the design and identity of the fleet-operations
 package of PROJECT BOND: canonical roster, aggregate gates, fleet health,
-provisioning, and the deterministic figures that visualise them. It is a
-local-only working tree; there is no remote.
+provisioning, and the deterministic figures that visualise them. It inspects
+the sibling suite strictly read-only and never edits a package it grades.
 
 ```latex
 \usepackage{amsmath}

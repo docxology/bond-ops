@@ -1,8 +1,9 @@
 # AGENTS.md — bond-ops (PROJECT BOND · QUARTERMASTER)
 
-Operational rules for AI agents and developers working inside
-`projects/working/bond/bond-ops/`. Read [`docs/agent_instructions.md`](docs/agent_instructions.md)
-first, then [`docs/architecture.md`](docs/architecture.md).
+Operational rules for AI agents and developers working inside this package —
+the `bond-ops` repo, or `projects/working/bond/bond-ops/` in the BOND monorepo.
+Read [`docs/agent_instructions.md`](docs/agent_instructions.md) first, then
+[`docs/architecture.md`](docs/architecture.md).
 
 ## Layer contract
 
@@ -12,7 +13,7 @@ first, then [`docs/architecture.md`](docs/architecture.md).
 | `scripts/` | Thin orchestrators only (argparse bootstrap + dispatch + printing). Business logic stays in `src/` — including the argparse surface itself, which lives in `src/bond_ops/cli.py` so the coverage gate can see it. |
 | `tests/` | Real subprocesses, real git repos, real files. **Zero mocks** (no `MagicMock` / `mocker.patch` / `unittest.mock`). `monkeypatch` may redirect `PATH` or an env var at a real artefact; it may never replace a function or return value. |
 | Scope | Exactly this package directory. Never edit siblings, `bond/` root files, or the template repo — not even a sibling the fleet gate reports as failing. |
-| Publishing | Local-only tree — there is **no remote**; never push. |
+| Publishing | The published remote is `docxology/bond-ops`; pushes go to `main` only, and the siblings the fleet gate inspects stay untouched. |
 
 ## Build and test
 

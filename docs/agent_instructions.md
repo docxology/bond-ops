@@ -15,13 +15,14 @@ packages. The rules below exist to make that hard.
 
 ## Rule 1: Scope is exactly this directory
 
-Work **only** inside `projects/working/bond/bond-ops/`. Never edit a sibling
-package, a `bond/` root file, or the template repo — even when the fleet gate
-shows a sibling failing. Reporting a sibling failure is this package's job;
-fixing it is not.
+Work **only** inside this package's own directory (the repo root of a
+standalone clone; `projects/working/bond/bond-ops/` in the BOND monorepo).
+Never edit a sibling package, a `bond/` root file, or the template repo — even
+when the fleet gate shows a sibling failing. Reporting a sibling failure is
+this package's job; fixing it is not.
 
-Commits are path-scoped inside this package's own git repo. This tree is
-**local-only** — there is no remote, and nothing is ever pushed.
+Commits are path-scoped inside this package's own git repo, whose published
+remote is `docxology/bond-ops`.
 
 ## Rule 2: Coverage gate — ≥90% on `src/`
 

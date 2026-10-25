@@ -1,8 +1,9 @@
 """Real-fleet tests — the gate runner and health probes against the live suite.
 
 These exercise the actual QUARTERMASTER machinery against the real live
-package tree under ``projects/working/bond/`` (real subprocesses, real files,
-real pytest-coverage/ruff/mypy).
+package tree under the auto-detected suite root (``inventory.DEFAULT_SUITE_ROOT``
+— the directory holding this checkout), with real subprocesses, real files, and
+real pytest-coverage/ruff/mypy.
 
 The gate-runner test gates **this package** (bond-ops) through the venv
 interpreter with the canonical ``--cov-fail-under=90`` gate plus real ruff and

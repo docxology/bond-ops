@@ -8,7 +8,7 @@ authors:
   - family-names: Friedman
     given-names: Daniel Ari
     orcid: "https://orcid.org/0000-0001-6232-9096"
-version: "3.0.0"
+version: "0.1.0"
 date-released: "2026-08-04"
 license: MIT
 keywords:

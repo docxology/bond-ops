@@ -8,9 +8,9 @@
     "familyName": "Friedman",
     "identifier": "https://orcid.org/0000-0001-6232-9096"
   },
-  "codeRepository": null,
+  "codeRepository": "https://github.com/docxology/bond-ops",
   "license": "MIT",
-  "version": "3.0.0",
+  "version": "0.1.0",
   "keywords": ["project-bond", "fleet-operations", "quality-gates"],
   "programmingLanguage": "Python",
   "dateCreated": "2026-08-04"

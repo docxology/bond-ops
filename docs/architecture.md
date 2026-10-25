@@ -53,8 +53,13 @@ predicate. There is no I/O beyond a single directory listing and no subprocess
 at all.
 
 `DEFAULT_SUITE_ROOT` is derived from this file's own location
-(`parents[3]` = `projects/working/bond/`), so the package finds the fleet
-without configuration and without a hardcoded absolute path.
+(`parents[3]` = the directory holding this package's checkout — in the BOND
+monorepo `projects/working/bond/`, for a standalone clone the parent of the
+repo root), so the package finds the fleet without configuration and without a
+hardcoded absolute path. `ops --suite-root PATH` overrides it, and roster slugs
+are matched against the directory names found there: a sibling checked out under
+a prefixed name (e.g. `bond-skyfall`) is reported under `unexpected` while its
+slug is reported `missing`.
 
 ### `gates.py` — the aggregate quality gate
 
@@ -111,9 +116,9 @@ here pass?".
   to `(modified, untracked)`; blank lines ignored.
 - `git_health(dir)` — is-repo, branch, short SHA, clean flag, modified and
   untracked counts, ahead/behind vs `@{upstream}`. Ahead/behind are `None`
-  rather than `0` when no upstream exists, which is the normal state in this
-  remote-less tree; conflating the two would report "up to date" for a repo
-  with nowhere to be up to date with.
+  rather than `0` when no upstream exists — the normal state for a package with
+  no tracking branch, and common across the fleet; conflating the two would
+  report "up to date" for a repo with nowhere to be up to date with.
 - `required_files(dir)` — presence of README.md / AGENTS.md / TODO.md /
   pyproject.toml.
 - `lineage_sweep(dir)` — zero-tolerance content scan for the exemplar lineage
@@ -154,8 +159,10 @@ Four subcommands, each with a human form and a `--json` form emitting a
 versioned manifest: `inventory`, `gate`, `health`, `roster`. `COMMANDS` is the
 single source of truth for the subcommand list and is asserted against the real
 parser in the tests, because it also feeds the `CLI_COMMAND_COUNT` manuscript
-token. Exit codes: `0` success, `1` failed gate verdict, `2` usage error
-(unknown slug, negative `--limit`, argparse misuse).
+token. Exit codes: `0` success, `1` failed gate verdict or a failing
+`roster --execute` provisioning script, `2` usage error (unknown slug, negative
+`--limit`, argparse misuse). The reporting commands exit `0` regardless of what
+they report.
 
 The CLI lives in `src/`, not `scripts/`, precisely so it falls inside the
 coverage gate; `scripts/ops_gate.py` is a six-line bootstrap.

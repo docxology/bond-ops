@@ -42,7 +42,7 @@ def test_git_health_clean(tmp_path):
     assert gh.modified == 0 and gh.untracked == 0
     assert gh.branch == "main"
     assert gh.sha is not None
-    assert gh.ahead is None and gh.behind is None  # no upstream (local-only)
+    assert gh.ahead is None and gh.behind is None  # no upstream configured
 
 
 def test_git_health_dirty(tmp_path):

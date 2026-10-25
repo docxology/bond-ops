@@ -4,11 +4,14 @@
 entirely from its own directory.
 
 ```bash
-cd /Users/4d/Documents/GitHub/template/projects/working/bond/bond-ops
+# from this package's repo root
 uv sync --extra dev
 uv run pytest tests/ --cov=src --cov-fail-under=90
 uv run python scripts/ops_gate.py inventory
 ```
 
 It inspects sibling packages under the suite root only read-only (reconcile,
-gate, health, provisioning). There is no remote; never push.
+gate, health, provisioning). The suite root is auto-detected as the directory
+holding this checkout — in the BOND monorepo that is
+`projects/working/bond/`, and a standalone clone finds its sibling checkouts in
+its own parent directory; either way `--suite-root` overrides it.

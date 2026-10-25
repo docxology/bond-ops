@@ -5,7 +5,7 @@ The fleet surface produced by {{PACKAGE_NAME}} (codename {{CODENAME}}) is the
 measured from real subprocess and filesystem state:
 
 - **Inventory.** `ops inventory` reconciles the canonical roster
-  ([@def:suite-roster]) against `projects/working/bond/` and reports present,
+  ([@def:suite-roster]) against the auto-detected fleet root and reports present,
   missing, and unexpected directories. A complete fleet shows `present
   {{SUITE_SIZE}}/{{SUITE_SIZE}} · missing 0 · complete True`
   ([@eq:reconcile-verdict]); the verdict is rendered as the Python boolean it

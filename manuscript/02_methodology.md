@@ -85,7 +85,7 @@ Git state is read from `git status --porcelain` and reduced by a pure parser
 predicate is exactly "both counts are zero". Branch, short SHA, and
 ahead/behind-upstream distances are recorded alongside, with ahead/behind
 reported as *undefined* rather than zero when no upstream is configured — the
-normal case in this local-only suite.
+normal case for a checkout with no tracking branch.
 
 ::: {.proposition #prop:probe-additivity title="Probes are additive, not verdict-changing"}
 The layout probes (`health.probe_layout`: `[project] name` equal to the slug,

@@ -9,9 +9,10 @@ tags: [project-bond, fleet-ops, quality-gates, thin-orchestrator]
 
 # bond-ops
 
-Project-scoped skill for the in-repo fleet-operations package at
-`projects/working/bond/bond-ops/` (PROJECT BOND Layer 4 · codename
-**QUARTERMASTER**). Load this when working inside the package.
+Project-scoped skill for the fleet-operations package (PROJECT BOND Layer 4 ·
+codename **QUARTERMASTER**) — this repository, or
+`projects/working/bond/bond-ops/` in the BOND monorepo. Load this when working
+inside the package.
 
 ## When to Use
 
@@ -23,7 +24,7 @@ Project-scoped skill for the in-repo fleet-operations package at
 ## Quick Reference
 
 ```bash
-cd projects/working/bond/bond-ops
+cd "$(git rev-parse --show-toplevel)"   # this package's repo root
 uv sync --extra dev
 uv run pytest tests/ --cov=src --cov-fail-under=90
 
@@ -65,5 +66,6 @@ uv run python scripts/z_generate_manuscript_variables.py
 ## Cross-refs
 
 - Shared guardrail preamble + BOND suite map: `software-development/bond-suite-package-development` skill.
-- Suite roster/scope: `projects/working/bond/` (`SCOPE.md`, `ROSTER.md`).
+- Suite roster/scope: the fleet root holding the sibling packages
+  (`SCOPE.md`, `ROSTER.md` in the monorepo).
 - Project context: `AGENTS.md`, `docs/agent_instructions.md`.

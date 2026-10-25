@@ -1,8 +1,8 @@
 # bond-ops — PROJECT BOND fleet operations (Layer 4 · codename QUARTERMASTER)
 #
-# This is a standalone local package within the BOND suite working tree. It
-# depends only on the standard library, subprocess, and PyYAML (for manuscript
-# configuration). There is no remote; never push.
+# This is the standalone BOND suite fleet-operations package. It depends only
+# on the standard library, subprocess, PyYAML (manuscript configuration) and
+# matplotlib (figures). Published at github.com/docxology/bond-ops.
 
 [build-system]
 requires = ["setuptools>=61.0"]
