@@ -369,3 +369,38 @@ at the top of this file and in `docs/_generated/COUNTS.md`.
 - `E3` — `ops gate --out PATH` manifest writer.
 - `V2` — end-to-end manuscript PDF render (pandoc pipeline) with no `??`/`{{`.
 
+## Workflowz review — 2026-11-10
+
+### Correctness — things that are wrong
+
+#### WR1. P1 — Reconcile the stale Python-floor finding with the current 3.12 contract
+
+**Evidence:** `TODO.md:100-116` still describes C3 as `requires-python = ">=3.10"` and prescribes a Python 3.10 gate, while the supplied current `pyproject.toml:19` declares `requires-python = ">=3.12"`, `pyproject.toml:70` sets mypy `python_version = "3.12"`, and `pyproject.toml:84` sets Ruff `target-version = "py312"`. `.python-version:1` currently selects `3.15`. The existing C2 text at `TODO.md:79-98` also describes `nargs="+"`, whereas the visible current CLI implementation at `src/bond_ops/cli.py:127-131` already applies `shlex.split(...)` to string overrides; the parser body needed to prove the remaining CLI behaviour was truncated, so no new CLI defect is asserted here.
+
+**Observable outcome:** C3 is rewritten against the current files rather than the stale 3.10 claim: either (a) run and record a real supported-floor Python 3.12 full gate, updating the prose floor claims only where current evidence shows drift, or (b) if the project deliberately adopts Python 3.15.2, update `requires-python`, mypy, Ruff, `.python-version`, and dependent prose together with an explicit compatibility reason. Do not blindly raise the floor merely to match the preferred reviewer target; matplotlib/PyYAML/test support and the project's scientific reproducibility requirements must be checked first. Separately revalidate C2 with its acceptance probe and mark it closed only if the actual parser and runtime test pass; do not claim closure from the excerpt alone.
+
+**Acceptance probe (from repo root):** `uv run --python 3.12 pytest tests/ --cov=src --cov-fail-under=90` must pass on the declared floor, or produce a concrete recorded incompatibility that drives a coordinated pin change. Then `uv run pytest tests/test_cli.py -k pytest_cmd -v` must pass for C2 before that item is removed or rewritten.
+
+**Dependencies/constraints:** Requires the maintainer to choose supported-floor validation versus a coordinated 3.15.2 migration; no dependency-latest upgrade is implied. Preserve the layer and zero-mock rules in `AGENTS.md:12-15`. The packet does not include `uv.lock` contents or the full parser, so those must be inspected before changing pins or closing C2.
+
+### Documentation
+
+#### WR2. P2 — Make the figure determinism claim match its environment scope in the package's own docstring
+
+**Evidence:** Existing V1 at `TODO.md:142-159` covers documentation and manuscript claims, but the current production docstring still says unqualifiedly that every figure is byte-deterministic for the same inputs at `src/bond_ops/figures.py:12-14`. The same module selects Agg at `src/bond_ops/figures.py:21-25`, which supports deterministic rendering within a fixed environment but does not establish identical PNG bytes across matplotlib/font/platform changes. `scripts/z_generate_figures.py:31-47` also feeds live fleet health and a live self-gate into two figures, so “same inputs” must mean the same report data as well as the same rendering environment.
+
+**Observable outcome:** Narrow `src/bond_ops/figures.py` and the already-listed V1 prose sites to “byte-identical for fixed input data within the same pinned rendering environment” (or equivalent precise wording), unless a checked-in cross-environment digest test is added. Record the actual matplotlib/Python/platform environment used for any digest in `docs/_generated/COUNTS.md`; do not claim cross-platform byte identity without evidence.
+
+**Acceptance probe (from repo root):** `uv run pytest tests/test_figures.py -v` must pass, and a documentation review of the four public plotting entry points must show the same same-environment qualification in the module documentation and V1-listed prose. If a digest approach is chosen instead, `uv run pytest tests/test_figures.py -v` must include a digest comparison that fails after an intentional fixture-byte change and passes after restoring it.
+
+**Dependencies/constraints:** Documentation-only narrowing is independently closable and does not require changing figure bytes. A digest alternative requires a deliberate pinned matplotlib/font/platform fixture policy; do not check in host-specific PNGs as universal truth.
+
+#### WR3. P2 — Remove or explicitly scope the silent manuscript-identity fallback
+
+**Evidence:** `read_identity()` falls back to built-in `bond-ops` identity when config is absent at `src/bond_ops/manuscript_variables.py:39-51`, on YAML/read errors at `src/bond_ops/manuscript_variables.py:53-59`, and for non-mapping YAML at `src/bond_ops/manuscript_variables.py:61-62`. It also substitutes defaults for missing/empty package fields at `src/bond_ops/manuscript_variables.py:63-69`. The production generator calls this path and writes the resulting token map at `src/bond_ops/manuscript_variables.py:92-109`, while `scripts/z_generate_manuscript_variables.py:21-27` prints the tokens but emits no warning that fallback identity was used. Thus malformed production config can silently yield a plausible manuscript instead of failing validation. The comments call this recovery intentional and tested, so this is not flagged as an accidental keyword hit; the concrete improvement is to distinguish an explicit draft/test fallback from production generation.
+
+**Observable outcome:** `generate_variables()` (the production persistence path) must fail loudly on malformed/unreadable or wrong-shaped `manuscript/config.yaml`, and on missing required identity fields, with an error naming the config path and problem. If absent-config defaults are required for drafts/tests, keep them only behind an explicit opt-in or in `build_tokens()` with a documented contract; do not silently use them for a real manuscript generation. Add behavior tests for malformed YAML, non-mapping YAML, and missing identity fields; retain a separate explicit test for the intentional draft fallback if kept.
+
+**Acceptance probe (from repo root):** `uv run pytest tests/test_manuscript_variables.py -v` must pass with new cases proving malformed and wrong-shaped configs raise a clear exception rather than writing fallback tokens. From a temporary copy of the repo, corrupt `manuscript/config.yaml`, run `uv run python scripts/z_generate_manuscript_variables.py`, and expect a non-zero exit plus a path-specific error and no newly written fallback token map; restore the config and expect success with `PACKAGE_NAME=bond-ops` and the configured codename.
+
+**Dependencies/constraints:** Preserve the intentional offline/test-mode fallback only where explicitly requested. This changes error behavior for invalid production config, not the valid-config token schema. No sibling imports or new dependencies are needed.
