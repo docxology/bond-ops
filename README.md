@@ -13,6 +13,25 @@ matched against the directory names there — a sibling checked out under a
 prefixed directory (e.g. `bond-skyfall`) therefore reads as `missing` under its
 slug and shows up in `unexpected` instead.
 
+## Quartermaster pipeline
+
+```mermaid
+flowchart TD
+    accTitle: bond-ops read-only fleet inventory, quality gates and health pipeline
+    accDescr: Given the sibling suite checkout root and an ops subcommand, inventory.py and provision.py reconcile the 33 expected package slugs and herdr roster entries while gates.py and health.py run per-package pytest 90%+ coverage and ruff gates and inspect git state, emitting AggregateGateReport JSON, human tables and fleet diagnostic figures.
+    I["Suite checkout root (33 expected slugs) and ops CLI subcommand"]
+    G0["inventory.py and provision.py<br/>Reconcile 27 film + 6 infra directories on disk and resolve herdr roster entries"]
+    G1["gates.py and health.py<br/>Run per-package pytest 90%+ coverage + ruff gates and inspect read-only git state"]
+    O["cli.py and figures.py<br/>AggregateGateReport JSON manifest, human health tables and 4 fleet diagnostic PNGs"]
+
+    I --> G0
+    I --> G1
+    G0 --> O
+    G1 --> O
+```
+
+**Source map:** [`inventory.py`](src/bond_ops/inventory.py), [`gates.py`](src/bond_ops/gates.py), [`health.py`](src/bond_ops/health.py), [`provision.py`](src/bond_ops/provision.py), [`cli.py`](src/bond_ops/cli.py), [`figures.py`](src/bond_ops/figures.py).
+
 ## The concept mapping
 
 Every BOND package is powered by an idea from its film. The infrastructure
