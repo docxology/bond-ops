@@ -1,5 +1,7 @@
 # docs/ — AGENTS.md
 
+[Package maintenance](package-maintenance.md) identifies the dependency and citation records.
+
 Reading order for an agent arriving in this package:
 
 1. [`agent_instructions.md`](agent_instructions.md) — the rules that govern

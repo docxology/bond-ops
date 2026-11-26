@@ -1,5 +1,7 @@
 # docs/ — bond-ops operational documentation
 
+[Package maintenance](package-maintenance.md) covers dependency and release records.
+
 The rulebook for this package (the `bond-ops` repo; `projects/working/bond/bond-ops/`
 in the BOND monorepo), the Layer-4 QUARTERMASTER of PROJECT BOND. Every document
 here is a constraint on how this package may change, not background reading.
