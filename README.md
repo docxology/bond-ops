@@ -1,5 +1,7 @@
 # bond-ops — PROJECT BOND · QUARTERMASTER
 
+See [package maintenance](docs/package-maintenance.md) for dependency and citation records.
+
 Fleet health, aggregate quality gates, and herdr provisioning for the entire
 PROJECT BOND suite — 27 film packages plus 6 infrastructure packages, 33 total.
 
