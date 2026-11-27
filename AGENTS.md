@@ -1,5 +1,8 @@
 # AGENTS.md — bond-ops (PROJECT BOND · QUARTERMASTER)
 
+The [package maintenance guide](docs/package-maintenance.md) records the
+distribution identity, Python selection, dependency provenance, and citation metadata.
+
 Operational rules for AI agents and developers working inside this package —
 the `bond-ops` repo, or `projects/working/bond/bond-ops/` in the BOND monorepo.
 Read [`docs/agent_instructions.md`](docs/agent_instructions.md) first, then
