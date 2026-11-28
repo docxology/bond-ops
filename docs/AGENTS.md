@@ -11,9 +11,8 @@ Reading order for an agent arriving in this package:
 3. [`testing_philosophy.md`](testing_philosophy.md) — zero mocks, real
    subprocesses, real files, and the determinism rules.
 
-See [`README.md`](README.md) for the full doc inventory, including the doc
-surfaces that live outside this directory (package root, per-directory
-`AGENTS.md` files, `manuscript/SYNTAX.md`).
+See [`README.md`](README.md) for the full doc inventory and
+[`manuscript/`](manuscript/) for the authored manuscript and syntax registry.
 
 Live measured counts (test count, coverage %) are generated under
 [`_generated/COUNTS.md`](_generated/COUNTS.md). Do not hardcode them in prose

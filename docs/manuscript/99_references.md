@@ -1,6 +1,6 @@
 # References {#sec:references}
 
-Bibliography lives in [`manuscript/references.bib`](references.bib) and is read
+Bibliography lives in [`docs/manuscript/references.bib`](references.bib) and is read
 by Pandoc with `--natbib` during PDF render. Every key cited in the prose
 resolves there, and the cross-reference test
 (`tests/test_manuscript_formalisms.py`) fails the build if one does not.

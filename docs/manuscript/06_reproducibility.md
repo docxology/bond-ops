@@ -33,7 +33,7 @@ failing one.
   serializing one report twice.
 - **Recovery paths are tested, not assumed.** The three places where
   {{PACKAGE_NAME}} degrades instead of raising — a malformed
-  `manuscript/config.yaml`, a corrupt generated token file, and a gate
+  `docs/manuscript/config.yaml`, a corrupt generated token file, and a gate
   subprocess that times out or cannot be launched — each carry a test that
   drives the real failure and asserts the fallback, so a silent-failure path
   cannot rot unobserved behind a coverage exclusion.

@@ -1,7 +1,7 @@
 """Manuscript variable hydration for bond-ops.
 
 Builds the ``{{TOKEN}}`` substitution map referenced by the manuscript prose.
-Identity tokens (package name, codename) come from ``manuscript/config.yaml``;
+Identity tokens (package name, codename) come from ``docs/manuscript/config.yaml``;
 every other token is *derived from a live code constant* — roster sizes from
 ``inventory``, the coverage floor / gate timeout / manifest name from
 ``gates``, the required-file count from ``health``, the subcommand count from
@@ -36,7 +36,7 @@ from .inventory import (
 )
 from .provision import AGENT_START_TIMEOUT_MS
 
-#: Defaults used when ``manuscript/config.yaml`` is absent (tests, drafts).
+#: Defaults used when ``docs/manuscript/config.yaml`` is absent (tests, drafts).
 _DEFAULT_IDENTITY = {
     "package_name": "bond-ops",
     "codename": BOND_OPS_CODENAME,
@@ -45,8 +45,8 @@ _DEFAULT_IDENTITY = {
 
 def read_identity(project_root: str | Path) -> dict[str, str]:
     """Read the manuscript identity (package name + codename) from
-    ``manuscript/config.yaml`` when present, else return defaults."""
-    config_path = Path(project_root) / "manuscript" / "config.yaml"
+    ``docs/manuscript/config.yaml`` when present, else return defaults."""
+    config_path = Path(project_root) / "docs" / "manuscript" / "config.yaml"
     if not config_path.is_file():
         return dict(_DEFAULT_IDENTITY)
 

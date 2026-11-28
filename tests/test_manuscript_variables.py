@@ -27,16 +27,16 @@ def test_read_identity_default_when_absent(tmp_path):
 
 
 def test_read_identity_from_config(tmp_path):
-    cfg = tmp_path / "manuscript"
-    cfg.mkdir()
+    cfg = tmp_path / "docs" / "manuscript"
+    cfg.mkdir(parents=True)
     (cfg / "config.yaml").write_text("package:\n  name: foo\n  codename: BAR\n", encoding="utf-8")
     ident = mv.read_identity(tmp_path)
     assert ident == {"package_name": "foo", "codename": "BAR"}
 
 
 def test_read_identity_non_dict(tmp_path):
-    cfg = tmp_path / "manuscript"
-    cfg.mkdir()
+    cfg = tmp_path / "docs" / "manuscript"
+    cfg.mkdir(parents=True)
     (cfg / "config.yaml").write_text("- just\n- a list\n", encoding="utf-8")
     assert mv.read_identity(tmp_path)["package_name"] == "bond-ops"  # default fallback
 
@@ -61,7 +61,7 @@ def test_all_manuscript_tokens_generated():
     """Every {{TOKEN}} in the numbered prose sections resolves in build_tokens()."""
     tokens = mv.build_tokens(PROJECT_ROOT)
     assert tokens  # non-empty
-    numbered = sorted(PROJECT_ROOT.glob("manuscript/[0-9]*.md"))
+    numbered = sorted(PROJECT_ROOT.glob("docs/manuscript/[0-9]*.md"))
     assert numbered, "expected numbered manuscript sections"
     for md in numbered:
         text = md.read_text(encoding="utf-8")
@@ -71,8 +71,8 @@ def test_all_manuscript_tokens_generated():
 
 def test_read_identity_malformed_yaml_falls_back(tmp_path):
     """A malformed config must degrade to the built-in identity, not crash."""
-    cfg = tmp_path / "manuscript"
-    cfg.mkdir()
+    cfg = tmp_path / "docs" / "manuscript"
+    cfg.mkdir(parents=True)
     (cfg / "config.yaml").write_text("package: [unclosed\n", encoding="utf-8")
     ident = mv.read_identity(tmp_path)
     assert ident["package_name"] == "bond-ops"
@@ -101,10 +101,10 @@ def test_derived_tokens_track_code_constants():
 
 
 def test_config_token_list_matches_generated_map():
-    """manuscript/config.yaml's declared token list must match build_tokens()."""
+    """docs/manuscript/config.yaml's declared token list must match build_tokens()."""
     import yaml
 
     config = yaml.safe_load(
-        (PROJECT_ROOT / "manuscript" / "config.yaml").read_text(encoding="utf-8")
+        (PROJECT_ROOT / "docs" / "manuscript" / "config.yaml").read_text(encoding="utf-8")
     )
     assert sorted(config["tokens"]) == sorted(mv.build_tokens(PROJECT_ROOT))

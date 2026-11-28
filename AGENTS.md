@@ -65,7 +65,7 @@ outside the sandbox rather than weakening a gate.
 - No leftover `template[_]code_project` strings. When referencing the exemplar
   lineage in a doc, bracket-split the token so the doc cannot trip its own
   sweep.
-- Manuscript tokens are injected from `manuscript/config.yaml` +
+- Manuscript tokens are injected from `docs/manuscript/config.yaml` +
   `src/bond_ops/manuscript_variables.py` — never hand-author a number in prose.
   A new token must be added to **both** `build_tokens()` and the `tokens:` list
   in `config.yaml`; a test asserts the two sets are equal.

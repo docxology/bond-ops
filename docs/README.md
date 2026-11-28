@@ -20,19 +20,17 @@ here is a constraint on how this package may change, not background reading.
 
 `agent_instructions.md` → `architecture.md` → `testing_philosophy.md`.
 
-## Where the other docs live
-
-This directory holds the *operational* rules. Three other doc surfaces exist
-and are not duplicated here:
+## Related documentation
 
 - **Package root** — `README.md` (what the package is and how to run it),
   `AGENTS.md` (the layer contract and the verification checklist), `TODO.md`
   (remaining work only), `STANDALONE.md` (the fork contract).
 - **Per-directory contracts** — `src/AGENTS.md`, `scripts/AGENTS.md`,
   `tests/AGENTS.md` each state the rule governing that one directory.
-- **Manuscript** — `manuscript/SYNTAX.md` is the authoritative registry of the
-  `{{TOKEN}}` map and every auto-numbered formalism label;
-  `manuscript/AGENTS.md` is the folder contract.
+- **Manuscript** — [`docs/manuscript/SYNTAX.md`](manuscript/SYNTAX.md) is the
+  authoritative registry of the `{{TOKEN}}` map and every auto-numbered
+  formalism label. [`docs/manuscript/AGENTS.md`](manuscript/AGENTS.md) is the
+  folder contract.
 
 ## The one rule that spans all of them
 

@@ -88,10 +88,10 @@ concatenation for the same reason.
 ## Rule 9: Manuscript numbers come from code
 
 Never type a number into manuscript prose. Identity tokens come from
-`manuscript/config.yaml`; every other token is derived from a live constant in
+`docs/manuscript/config.yaml`; every other token is derived from a live constant in
 `src/bond_ops/`. Adding a token means editing **both**
 `manuscript_variables.build_tokens` and the `tokens:` list in
-`manuscript/config.yaml` — a test asserts the two sets are equal. Measured
+`docs/manuscript/config.yaml` — a test asserts the two sets are equal. Measured
 values (coverage %, test counts) are never tokens; they are runtime
 diagnostics.
 

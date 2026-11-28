@@ -2,7 +2,7 @@
 """Thin orchestrator: generate the manuscript ``{{TOKEN}}`` map and persist it.
 
 Delegates to :func:`bond_ops.manuscript_variables.generate_variables`, which
-reads identity tokens from ``manuscript/config.yaml`` and roster counts from
+reads identity tokens from ``docs/manuscript/config.yaml`` and roster counts from
 the deterministic suite constants in ``inventory.py``, then writes
 ``output/variables/manuscript_variables.json`` (sorted keys, deterministic).
 """

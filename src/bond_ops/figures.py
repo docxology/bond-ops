@@ -38,7 +38,7 @@ GREY = "#999999"
 #: Default figure output directory, relative to the working directory.
 DEFAULT_FIGURE_DIR = Path("output") / "figures"
 
-#: Figure filenames (manuscript references these under ``../output/figures/``).
+#: Figure filenames (manuscript references these under ``../../output/figures/``).
 ROSTER_COMPOSITION = "roster_composition.png"
 FLEET_HEALTH = "fleet_health.png"
 GATE_COVERAGE = "gate_coverage.png"

@@ -13,7 +13,7 @@ Covered claims:
   through config instead of through a comment).
 - ``README.md`` / ``scripts/ops_gate.py``: the installed console script ``ops``
   is the same entry point as ``scripts/ops_gate.py``.
-- ``manuscript/03_results.md``: the literal ``ops inventory`` line quoted in the
+- ``docs/manuscript/03_results.md``: the literal ``ops inventory`` line quoted in the
   manuscript is the line the CLI actually prints.
 
 Real files, real installed metadata, real subprocess — no mocks.
@@ -149,7 +149,7 @@ def test_installed_console_script_runs_and_matches_the_wrapper():
 
 def _quoted_inventory_line() -> str:
     """Pull the backticked ``ops inventory`` line out of the results section."""
-    text = (PROJECT_ROOT / "manuscript" / "03_results.md").read_text(encoding="utf-8")
+    text = (PROJECT_ROOT / "docs" / "manuscript" / "03_results.md").read_text(encoding="utf-8")
     match = re.search(r"A complete fleet shows `([^`]+)`", text, flags=re.S)
     assert match, "manuscript no longer quotes the `ops inventory` summary line"
     return " ".join(match.group(1).split())

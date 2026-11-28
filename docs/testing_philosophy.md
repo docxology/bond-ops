@@ -127,7 +127,7 @@ are worth protecting during any refactor:
   subparser choices. Without it, `COMMANDS` is a hand-maintained list feeding a
   manuscript token — a number that could drift from reality while still
   "passing".
-- **The token-set test** asserts `manuscript/config.yaml`'s declared token list
+- **The token-set test** asserts `docs/manuscript/config.yaml`'s declared token list
   equals the keys `build_tokens()` actually produces, so a token can never be
   declared in one place and missing from the other.
 - **The formalism cross-reference test** asserts every declared figure, table,

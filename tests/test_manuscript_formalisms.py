@@ -13,7 +13,7 @@ import re
 
 from conftest import PROJECT_ROOT
 
-MANUSCRIPT = PROJECT_ROOT / "manuscript"
+MANUSCRIPT = PROJECT_ROOT / "docs" / "manuscript"
 SECTIONS = sorted(MANUSCRIPT.glob("[0-9]*.md"))
 
 #: Cross-referenceable label kinds (pandoc-crossref + formalism.lua).
