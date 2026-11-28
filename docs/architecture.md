@@ -119,8 +119,9 @@ here pass?".
   rather than `0` when no upstream exists — the normal state for a package with
   no tracking branch, and common across the fleet; conflating the two would
   report "up to date" for a repo with nowhere to be up to date with.
-- `required_files(dir)` — presence of README.md / AGENTS.md / TODO.md /
-  pyproject.toml.
+- `required_files(dir, *, slug=None)` checks `README.md`, `AGENTS.md`, the
+  maintenance backlog, and `pyproject.toml`. For `bond-utilities`, the canonical
+  `docs/backlog.md` also satisfies the `TODO.md` status slot.
 - `lineage_sweep(dir)` — zero-tolerance content scan for the exemplar lineage
   marker, skipping `.git`, `uv.lock`, `.venv`, caches and `output/`. The marker
   is built by string concatenation so this module never contains the contiguous

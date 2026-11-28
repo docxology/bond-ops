@@ -1,8 +1,8 @@
 """Per-repo fleet health for the BOND suite.
 
 For each package: git state (clean tree, branch, short sha, ahead/behind vs
-upstream), presence of the required tracking files (README / AGENTS / TODO /
-pyproject.toml), and a zero-tolerance sweep for leftover exemplar lineage
+upstream), presence of the required tracking files (README / AGENTS /
+maintenance backlog / pyproject.toml), and a zero-tolerance sweep for leftover exemplar lineage
 strings (the marker is spelled ``template[_]code_project`` in prose so this
 doc cannot trip its own sweep).
 
@@ -115,10 +115,14 @@ def git_health(repo_dir: str | Path) -> GitHealth:
     )
 
 
-def required_files(package_dir: str | Path) -> dict[str, bool]:
-    """Map each required filename to whether it exists under ``package_dir``."""
+def required_files(package_dir: str | Path, *, slug: str | None = None) -> dict[str, bool]:
+    """Check the required file slots for a package."""
     root = Path(package_dir)
-    return {name: (root / name).is_file() for name in REQUIRED_FILES}
+    files = {name: (root / name).is_file() for name in REQUIRED_FILES}
+    name = slug if slug is not None else root.name
+    if name == "bond-utilities" and not files["TODO.md"]:
+        files["TODO.md"] = (root / "docs" / "backlog.md").is_file()
+    return files
 
 
 def lineage_sweep(package_dir: str | Path) -> list[str]:
@@ -276,7 +280,7 @@ def health(package_dir: str | Path, *, slug: str | None = None) -> HealthReport:
         slug=name,
         present=True,
         git=git_health(root),
-        files=required_files(root),
+        files=required_files(root, slug=name),
         lineage_hits=lineage_sweep(root),
         probes=probe_layout(root, name),
     )
