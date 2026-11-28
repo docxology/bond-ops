@@ -9,6 +9,7 @@ import os
 import shutil
 import subprocess
 
+import pytest
 from bond_ops import health as h
 
 # Built by concatenation so this test file never contains the contiguous
@@ -92,6 +93,33 @@ def test_required_files(tmp_path):
     assert files["README.md"] is True
     assert files["AGENTS.md"] is False
     assert len(files) == 4
+
+
+@pytest.mark.parametrize(
+    ("slug", "backlog", "expected"),
+    [
+        pytest.param("bond-utilities", "docs/backlog.md", True, id="canonical"),
+        pytest.param("bond-utilities", "TODO.md", True, id="legacy"),
+        pytest.param("bond-utilities", None, False, id="missing"),
+        pytest.param("another-package", "docs/backlog.md", False, id="other-package"),
+    ],
+)
+def test_required_files_utilities_backlog(tmp_path, slug, backlog, expected):
+    package = tmp_path / "checkout"
+    package.mkdir()
+    for name in ("README.md", "AGENTS.md", "pyproject.toml"):
+        (package / name).touch()
+    if backlog is not None:
+        path = package / backlog
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+
+    assert h.required_files(package, slug=slug) == {
+        "README.md": True,
+        "AGENTS.md": True,
+        "TODO.md": expected,
+        "pyproject.toml": True,
+    }
 
 
 def test_lineage_sweep(tmp_path):
