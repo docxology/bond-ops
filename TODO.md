@@ -104,7 +104,7 @@ tokens (e.g. switch to a single string parsed with `shlex.split`, or `nargs=REMA
 avoid `tomllib` (3.11+) — a cost paid entirely for a floor nothing has ever run.
 Against it: the local interpreter is **3.14.6**, `pyproject.toml:70` pins mypy to
 `python_version = "3.12"`, and `docs/architecture.md:120-121` plus
-`manuscript/05_experimental_setup.md:3` both restate the ≥3.10 claim in prose.
+`docs/manuscript/05_experimental_setup.md:3` both restate the ≥3.10 claim in prose.
 
 *Done looks like:* either the full gate passes under a real 3.10 interpreter (and
 that fact is recorded in `docs/_generated/COUNTS.md`), or `requires-python`,
@@ -145,7 +145,7 @@ herdr workspace list | python3 -c "import sys,json;w=json.load(sys.stdin)['resul
 same interpreter, same matplotlib, same fonts** and compare bytes. Matplotlib
 version, font availability and platform can all move PNG bytes, and this test
 cannot see any of that. Meanwhile `docs/testing_philosophy.md:44` and
-`manuscript/05_experimental_setup.md:16` state the claim unqualified
+`docs/manuscript/05_experimental_setup.md:16` state the claim unqualified
 ("byte-deterministic for fixed inputs").
 
 *Done looks like:* the documented claim and the enforced claim are the same claim —
@@ -155,17 +155,17 @@ check exists (e.g. compare against a checked-in digest produced under a pinned
 matplotlib) that can actually fail when the toolchain moves.
 
 *Demonstrate with:* `uv run pytest tests/test_figures.py -v` plus
-`rg -n "byte-deterministic|byte-identical" docs/ manuscript/` showing every site
+`rg -n "byte-deterministic|byte-identical" docs/` showing every site
 carries the same scope word.
 
 #### V2. The manuscript has never been rendered end-to-end
 
-`manuscript/` declares auto-numbered formalisms, `@fig:` / `@prop:` cross-references
-(`manuscript/03_results.md:24,43,45,47`) and `{{TOKEN}}` substitution.
+`docs/manuscript/` declares auto-numbered formalisms, `@fig:` / `@prop:` cross-references
+(`docs/manuscript/03_results.md:24,43,45,47`) and `{{TOKEN}}` substitution.
 `tests/test_manuscript_formalisms.py` proves every label resolves **textually**; no
 PDF has ever been produced from this package (`find . -name '*.pdf'` → nothing), so
 the pandoc-crossref + `formalism.lua` path is unverified here. Note the render
-precondition: the manuscript points at `../output/figures/*.png` and `output/` is
+precondition: the manuscript points at `../../output/figures/*.png` and `output/` is
 gitignored (`.gitignore`, last line), so `scripts/z_generate_figures.py` and
 `scripts/z_generate_manuscript_variables.py` must run first or the figures silently
 do not embed.
@@ -196,7 +196,7 @@ command but `gate` can exit non-zero.
 
 *Done looks like:* `README.md` names the `roster --execute` case and states that
 `inventory` / `health` / read-only `roster` always exit `0`, matching
-`scripts/AGENTS.md` and `manuscript/02_methodology.md:98`.
+`scripts/AGENTS.md` and `docs/manuscript/02_methodology.md:98`.
 
 *Demonstrate with:*
 `rg -n "roster --execute" README.md scripts/AGENTS.md` returning both files.
@@ -399,8 +399,8 @@ at the top of this file and in `docs/_generated/COUNTS.md`.
 
 **Evidence:** `read_identity()` falls back to built-in `bond-ops` identity when config is absent at `src/bond_ops/manuscript_variables.py:39-51`, on YAML/read errors at `src/bond_ops/manuscript_variables.py:53-59`, and for non-mapping YAML at `src/bond_ops/manuscript_variables.py:61-62`. It also substitutes defaults for missing/empty package fields at `src/bond_ops/manuscript_variables.py:63-69`. The production generator calls this path and writes the resulting token map at `src/bond_ops/manuscript_variables.py:92-109`, while `scripts/z_generate_manuscript_variables.py:21-27` prints the tokens but emits no warning that fallback identity was used. Thus malformed production config can silently yield a plausible manuscript instead of failing validation. The comments call this recovery intentional and tested, so this is not flagged as an accidental keyword hit; the concrete improvement is to distinguish an explicit draft/test fallback from production generation.
 
-**Observable outcome:** `generate_variables()` (the production persistence path) must fail loudly on malformed/unreadable or wrong-shaped `manuscript/config.yaml`, and on missing required identity fields, with an error naming the config path and problem. If absent-config defaults are required for drafts/tests, keep them only behind an explicit opt-in or in `build_tokens()` with a documented contract; do not silently use them for a real manuscript generation. Add behavior tests for malformed YAML, non-mapping YAML, and missing identity fields; retain a separate explicit test for the intentional draft fallback if kept.
+**Observable outcome:** `generate_variables()` (the production persistence path) must fail loudly on malformed/unreadable or wrong-shaped `docs/manuscript/config.yaml`, and on missing required identity fields, with an error naming the config path and problem. If absent-config defaults are required for drafts/tests, keep them only behind an explicit opt-in or in `build_tokens()` with a documented contract; do not silently use them for a real manuscript generation. Add behavior tests for malformed YAML, non-mapping YAML, and missing identity fields; retain a separate explicit test for the intentional draft fallback if kept.
 
-**Acceptance probe (from repo root):** `uv run pytest tests/test_manuscript_variables.py -v` must pass with new cases proving malformed and wrong-shaped configs raise a clear exception rather than writing fallback tokens. From a temporary copy of the repo, corrupt `manuscript/config.yaml`, run `uv run python scripts/z_generate_manuscript_variables.py`, and expect a non-zero exit plus a path-specific error and no newly written fallback token map; restore the config and expect success with `PACKAGE_NAME=bond-ops` and the configured codename.
+**Acceptance probe (from repo root):** `uv run pytest tests/test_manuscript_variables.py -v` must pass with new cases proving malformed and wrong-shaped configs raise a clear exception rather than writing fallback tokens. From a temporary copy of the repo, corrupt `docs/manuscript/config.yaml`, run `uv run python scripts/z_generate_manuscript_variables.py`, and expect a non-zero exit plus a path-specific error and no newly written fallback token map; restore the config and expect success with `PACKAGE_NAME=bond-ops` and the configured codename.
 
 **Dependencies/constraints:** Preserve the intentional offline/test-mode fallback only where explicitly requested. This changes error behavior for invalid production config, not the valid-config token schema. No sibling imports or new dependencies are needed.

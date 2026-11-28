@@ -181,7 +181,7 @@ bytes.
 ### `manuscript_variables.py` — token hydration
 
 Identity tokens (`PACKAGE_NAME`, `CODENAME`) come from
-`manuscript/config.yaml`; every other token is derived from a live code
+`docs/manuscript/config.yaml`; every other token is derived from a live code
 constant — roster sizes from `inventory`, coverage floor / gate timeout /
 manifest name from `gates`, required-file count from `health`, subcommand count
 from `cli`, agent-start timeout from `provision`. Change a constant and the
@@ -241,5 +241,5 @@ verified on the fleet it operates.
    subcommand (the parser-parity test catches a mismatch).
 3. Cover it with a real-filesystem / real-subprocess test.
 4. If it produces a number the manuscript should quote, add a derived token in
-   `manuscript_variables.py` **and** to `manuscript/config.yaml` — the token-set
+   `manuscript_variables.py` **and** to `docs/manuscript/config.yaml` — the token-set
    test requires the two to agree.

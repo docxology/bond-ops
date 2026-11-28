@@ -44,11 +44,11 @@ The gate manifest schema (version 1) is summarised in [@tbl:gate-manifest].
 | `packages` | array | per-package verdict objects (presence, pytest / ruff / mypy, coverage) |
 : The `{{GATE_MANIFEST}}` manifest schema, version 1. {#tbl:gate-manifest}
 
-![Fleet health across the whole roster: one row per package, green = healthy, red = unhealthy, grey = missing.](../output/figures/fleet_health.png){#fig:fleet-health width=75%}
+![Fleet health across the whole roster: one row per package, green = healthy, red = unhealthy, grey = missing.](../../output/figures/fleet_health.png){#fig:fleet-health width=75%}
 
-![Measured gate coverage with the {{COVERAGE_FLOOR}}% floor reference line.](../output/figures/gate_coverage.png){#fig:gate-coverage width=60%}
+![Measured gate coverage with the {{COVERAGE_FLOOR}}% floor reference line.](../../output/figures/gate_coverage.png){#fig:gate-coverage width=60%}
 
-![Aggregate gate verdict heatmap (pytest / ruff / mypy / passed).](../output/figures/gate_verdicts.png){#fig:gate-verdicts width=60%}
+![Aggregate gate verdict heatmap (pytest / ruff / mypy / passed).](../../output/figures/gate_verdicts.png){#fig:gate-verdicts width=60%}
 
 Because the manifest carries no wall-clock timestamp and asks only real
 processes for their verdicts, re-running `ops gate` against an unchanged fleet

@@ -13,7 +13,7 @@ carried as data in `src/bond_ops/inventory.py` and reconciled against live
 directories by `inventory.reconcile`.
 :::
 
-![Roster composition of {{SUITE_NAME}}: {{INFRA_COUNT}} infrastructure packages and {{FILM_COUNT}} film packages, totalling {{SUITE_SIZE}} packages.](../output/figures/roster_composition.png){#fig:roster-composition width=70%}
+![Roster composition of {{SUITE_NAME}}: {{INFRA_COUNT}} infrastructure packages and {{FILM_COUNT}} film packages, totalling {{SUITE_SIZE}} packages.](../../output/figures/roster_composition.png){#fig:roster-composition width=70%}
 
 The QUARTERMASTER's premise: a fleet this large can only be trusted if it is
 inventoried, gated, and provisioned from a single, deterministic vantage

@@ -64,7 +64,7 @@ Business logic lives in `src/bond_ops/`; `scripts/` does argv shaping only.
 | `src/bond_ops/provision.py` | The herdr provisioning roster: a `RosterEntry` per package, prompt-file resolution, a deterministic shell script (`workspace create` → pane id → `agent start` → optional `agent prompt`), a machine-readable `roster_report()`, and the only side-effecting call in the package, `execute_script()`. |
 | `src/bond_ops/cli.py` | The `ops` argparse surface — `inventory`, `gate`, `health`, `roster` — each with a human and a `--json` form. `COMMANDS` is the single source of truth for the subcommand set. |
 | `src/bond_ops/figures.py` | Four deterministic headless-Agg figure generators: roster composition, fleet-health sweep, gate coverage with the floor line, and a gate verdict heatmap. Byte-identical for fixed inputs. |
-| `src/bond_ops/manuscript_variables.py` | Hydrates the manuscript `{{TOKEN}}` map — identity from `manuscript/config.yaml`, every other token derived from a live code constant. |
+| `src/bond_ops/manuscript_variables.py` | Hydrates the manuscript `{{TOKEN}}` map — identity from `docs/manuscript/config.yaml`, every other token derived from a live code constant. |
 | `scripts/ops_gate.py` | Thin `ops` CLI bootstrap. |
 | `scripts/z_generate_figures.py` | Thin wrapper rendering the four figures into `output/figures/`. |
 | `scripts/z_generate_manuscript_variables.py` | Thin wrapper writing the token map to `output/variables/`. |
@@ -154,5 +154,5 @@ If `uv` reports `Failed to initialize cache`, that is a sandbox restriction on
   import DAG), `testing_philosophy.md` (the zero-mock doctrine).
 - [`AGENTS.md`](AGENTS.md) — layer contract and verification checklist.
 - [`TODO.md`](TODO.md) — remaining work only.
-- [`manuscript/`](manuscript/) — the design record, with `SYNTAX.md` as the
-  authoritative token and formalism registry.
+- [`docs/manuscript/`](docs/manuscript/) — the design record, with
+  [`SYNTAX.md`](docs/manuscript/SYNTAX.md) as the authoritative token and formalism registry.
